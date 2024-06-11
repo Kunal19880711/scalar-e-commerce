@@ -16,15 +16,30 @@ exports.createResource = (model) => async (req, res) => {
 
 exports.getAllResources = (model) => async (req, res) => {
   try {
-    const resources = await model.find();
-    if (resources.length === 0) {
+    let dbQuery = model.find();
+
+    const { sort } = req.query || {};
+    if (sort) {
+      const [param, direction] = sort?.split("_") || [];
+      dbQuery = dbQuery.sort({ [param]: direction === "desc" ? -1 : 1 });
+    }
+
+    const { page, limit } = req.query || {};
+    if (page && limit) {
+      dbQuery = dbQuery
+        .skip((parseInt(page) - 1) * parseInt(limit))
+        .limit(parseInt(limit));
+    }
+
+    const data = await dbQuery;
+    if (data.length === 0) {
       res.status(404).json({
         message: "No resources found",
       });
     } else {
       res.status(200).json({
         message: "Resources found",
-        data: resources,
+        data: data,
       });
     }
   } catch (err) {
@@ -102,4 +117,3 @@ exports.updateResourceById = (model) => async (req, res) => {
     });
   }
 };
-

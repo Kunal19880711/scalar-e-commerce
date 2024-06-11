@@ -18,6 +18,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "eslint": "^9.4.0",
     "nodemon": "^3.1.2"
   },
   "volta": {

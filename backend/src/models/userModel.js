@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
+      unique: [true, "Email already exists"],
     },
     password: {
       type: String,
@@ -19,15 +20,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       minLength: 8,
-      validate: [function () {
-        return this.confirmPassword === this.password;
-      }, "{VALUE} does not match with password"],
+      validate: [
+        function () {
+          return this.confirmPassword === this.password;
+        },
+        "{VALUE} does not match with password",
+      ],
     },
-    // createdAt: {
-    //   type: Date,
-    //   default: Date.now(),
-    // },
-
     role: {
       type: String,
       default: "admin",
@@ -55,6 +54,20 @@ userSchema.pre("save", function (next) {
 userSchema.pre("findOne", function (next) {
   this.select("-password");
   next();
+});
+
+userSchema.pre("find", function (next) {
+  this.select("-password");
+  next();
+});
+
+userSchema.post("save", function (err, doc, next) {
+  if (err.name === "MongoError" && err.code === 11000) {
+    console.log(err);
+    next(new Error("Email is already in registered"));
+  } else {
+    next();
+  }
 });
 
 const UserModel = mongoose.model("UserModel", userSchema);
