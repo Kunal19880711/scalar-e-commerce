@@ -1,0 +1,17 @@
+{
+  "name": "run-fullstack",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev:backend": "npm run dev --prefix ../backend",
+    "dev:frontend": "npm run dev --prefix ../frontend",
+    "dev": "concurrently npm:dev:*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "A single point to run both backend and frontend",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
