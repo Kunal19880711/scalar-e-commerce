@@ -32,14 +32,9 @@ function Home() {
              * route -> the whole url
              * **/
             const response = await axios.get(URL_CONSTANTS.PRODUCT_LIST);
-            const productList = response.data.message;
-            const mappedProductList = productList.map((product) => {
-                return {
-                    id: product["_id"], ...product
-                }
-            })
-            console.log(mappedProductList);
-            setProducts(mappedProductList);
+            const productList = response.data.data;
+            console.log(productList);
+            setProducts(productList);
 
         })()
     }, [])

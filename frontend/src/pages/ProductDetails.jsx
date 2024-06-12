@@ -25,11 +25,10 @@ function ProductDetails() {
        * **/
       const response = await axios.get(URL_CONSTANTS.GET_PRODUCT_BY_ID + `/${id}`);
       
-      const product = response.data.message;
-      const mappedProduct = {   id: product["_id"], ...product }
+      const product = response.data.data;
       
       // console.log(mappedProduct);
-      setProduct(mappedProduct);
+      setProduct(product);
 
     })()
   }, [])
