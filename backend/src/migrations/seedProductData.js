@@ -1,4 +1,4 @@
-const ProductModel = require("../models/productModel");
+const {ProductModel} = require("../models/productModel");
 const products = require("../../json/products.json");
 
 async function seedProductData(model, entries) {
@@ -13,7 +13,7 @@ async function seedProductData(model, entries) {
   try {
     await mongoose.connect(uri);
     console.log("db connected");
-    
+
     console.log("dropping existing model");
     await model.collection.drop();
     console.log("dropped existing model");
