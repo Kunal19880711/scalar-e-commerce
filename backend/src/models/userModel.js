@@ -70,6 +70,10 @@ userSchema.post("save", function (err, doc, next) {
   }
 });
 
+userSchema.set("toJSON", {
+  virtuals: true,
+});
+
 const UserModel = mongoose.model("UserModel", userSchema);
 
 module.exports = {

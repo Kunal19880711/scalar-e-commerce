@@ -41,6 +41,10 @@ const productSchema = new Schema(
   }
 );
 
+productSchema.set("toJSON", {
+  virtuals: true,
+});
+
 exports.ProductModel = model("productModel", productSchema);
 
 const sampleProducts = [
