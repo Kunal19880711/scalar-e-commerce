@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { Schema, model } = require("mongoose");
 
 exports.mongoConnect =  async function mongoConnect(mongoConfig) {
   const { userid, mongodbpassword, mongourl, appname } = mongoConfig;

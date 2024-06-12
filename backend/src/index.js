@@ -3,16 +3,20 @@ const { startWebServer } = require("./webServer");
 
 require("dotenv").config();
 
-const { MONGO_USERID, MONGO_DBPASSWORD, MONGO_URL, MONGO_APPNAME, SERVER_PORT, SERVER_HOST } = process.env;
 const mongoConfig = {
-  userid: MONGO_USERID,
-  mongodbpassword: MONGO_DBPASSWORD,
-  mongourl: MONGO_URL,
-  appname: MONGO_APPNAME,
+  userid: process.env.MONGO_USERID,
+  mongodbpassword: process.env.MONGO_DBPASSWORD,
+  mongourl: process.env.MONGO_URL,
+  appname: process.env.MONGO_APPNAME,
+};
+const serverCorsConfig = {
+  origin: JSON.parse(process.env.SERVER_CORS_ORIGIN),
+  credentials: JSON.parse(process.env.SERVER_CORS_CREDENTIALS),
 };
 const serverConfig = {
-  host: SERVER_HOST,
-  port: SERVER_PORT,
+  host: process.env.SERVER_HOST,
+  port: process.env.SERVER_PORT,
+  cors: serverCorsConfig,
 };
 
 start();
