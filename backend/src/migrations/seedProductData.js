@@ -6,8 +6,9 @@ async function seedProductData(model, entries) {
   const dotenv = require("dotenv");
 
   dotenv.config();
-  const { USERID, MONGODBPASSWORD, MONGOURL, APPNAME } = process.env;
-  const uri = `mongodb+srv://${USERID}:${MONGODBPASSWORD}@${MONGOURL}?retryWrites=true&w=majority&appName=${APPNAME}`;
+  const { MONGO_USERID, MONGO_DBPASSWORD, MONGO_URL, MONGO_APPNAME } =
+    process.env;
+  const uri = `mongodb+srv://${MONGO_USERID}:${MONGO_DBPASSWORD}@${MONGO_URL}?retryWrites=true&w=majority&appName=${MONGO_APPNAME}`;
 
   try {
     await mongoose.connect(uri);

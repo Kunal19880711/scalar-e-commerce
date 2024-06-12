@@ -1,27 +1,27 @@
-// const uri =
-//   "mongodb+srv://user001:kPpMfmPBnJQpjX1f@cluster0.braqwrs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const { mongoConnect } = require("./mongoConnect");
+const { startWebServer } = require("./webServer");
 
 require("dotenv").config();
-const mongoose = require("mongoose");
-const express = require("express");
 
-const { userRouter } = require("./routes/userRouter");
-const { productRouter } = require("./routes/productRouter");
+const { MONGO_USERID, MONGO_DBPASSWORD, MONGO_URL, MONGO_APPNAME, SERVER_PORT, SERVER_HOST } = process.env;
+const mongoConfig = {
+  userid: MONGO_USERID,
+  mongodbpassword: MONGO_DBPASSWORD,
+  mongourl: MONGO_URL,
+  appname: MONGO_APPNAME,
+};
+const serverConfig = {
+  host: SERVER_HOST,
+  port: SERVER_PORT,
+};
 
-const app = express();
-const { USERID, MONGODBPASSWORD, MONGOURL, APPNAME } = process.env;
-const uri = `mongodb+srv://${USERID}:${MONGODBPASSWORD}@${MONGOURL}?retryWrites=true&w=majority&appName=${APPNAME}`;
-app.use(express.json());
+start();
 
-app.use("/api/user", userRouter);
-app.use("/api/product", productRouter);
-
-mongoose
-  .connect(uri)
-  .then(() => {
-    console.log("MongoDB connected");
-    app.listen(3000, () => console.log("Listening on port 3000"));
-  })
-  .catch((err) => {
+async function start() {
+  try {
+    await mongoConnect(mongoConfig);
+    await startWebServer(serverConfig);
+  } catch (err) {
     console.log(err);
-  });
+  }
+}
