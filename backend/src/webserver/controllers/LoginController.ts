@@ -104,7 +104,7 @@ export class LoginController {
   ): Promise<void> {
     try {
       const { token } = req.body;
-      const payload: JwtPayload = await decrpyptJwtTokenHelper(token);
+      const payload: JwtPayload = await this.decrpyptJwtTokenHelper(token);
       const userInfo: IUserInfo = payload as IUserInfo;
       res.cookie(cookieKey, token, { maxAge: cookieMaxAge, httpOnly: true });
 
@@ -124,16 +124,14 @@ export class LoginController {
     res.clearCookie(cookieKey);
     respondSuccess(res, HttpStatus.OK, {}, "Logout successful");
   }
-}
 
-export async function decrpyptJwtTokenHelper(
-  token: string
-): Promise<JwtPayload> {
-  try {
-    return await decrpyptJwtToken(token);
-  } catch (err) {
-    throw new ApiError(HttpStatus.Unauthenticated, "Invalid token", [
-      new ValidationErrorDetail("token", ["Invalid token"]),
-    ]);
+  async decrpyptJwtTokenHelper(token: string): Promise<JwtPayload> {
+    try {
+      return await decrpyptJwtToken(token);
+    } catch (err) {
+      throw new ApiError(HttpStatus.Unauthenticated, "Invalid token", [
+        new ValidationErrorDetail("token", ["Invalid token"]),
+      ]);
+    }
   }
 }

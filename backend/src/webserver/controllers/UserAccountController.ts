@@ -1,9 +1,10 @@
 import { Response, NextFunction } from "express";
 import { IUser, UserModel } from "../../persistence";
 import {
-  ApiError, IRequestWithJsonBody,
+  ApiError,
+  IRequestWithJsonBody,
   IValidationErrorDetail,
-  ValidationErrorDetail
+  ValidationErrorDetail,
 } from "../types";
 
 import { controller, post, bodyValidator } from "./decorators";
@@ -77,7 +78,7 @@ export class UserAccountController {
         return;
       }
 
-      const otpErrorDetail = verifyOtp(user.accountVerificationOtp, otp);
+      const otpErrorDetail = this.verifyOtp(user.accountVerificationOtp, otp);
       if (otpErrorDetail) {
         next(
           new ApiError(HttpStatus.BadRequest, "Invalid OTP", [otpErrorDetail])
@@ -180,7 +181,7 @@ export class UserAccountController {
       }
 
       const errorDetails: IValidationErrorDetail[] = [];
-      const otpErrorDetail = verifyOtp(user.passwordRecoveryOtp, otp);
+      const otpErrorDetail = this.verifyOtp(user.passwordRecoveryOtp, otp);
       if (otpErrorDetail) {
         errorDetails.push(otpErrorDetail);
       }
@@ -223,23 +224,23 @@ export class UserAccountController {
       next(err);
     }
   }
-}
 
-export function verifyOtp(
-  otp: Otp | undefined,
-  otpToVerify: string
-): ValidationErrorDetail | null {
-  let otpErrorDetail: IValidationErrorDetail | null = null;
+  verifyOtp(
+    otp: Otp | undefined,
+    otpToVerify: string
+  ): ValidationErrorDetail | null {
+    let otpErrorDetail: IValidationErrorDetail | null = null;
 
-  if (!otp) {
-    otpErrorDetail = new ValidationErrorDetail("otp", [
-      "Please generate OTP first.",
-    ]);
-  } else if (otp.otp !== otpToVerify) {
-    otpErrorDetail = new ValidationErrorDetail("otp", ["Invalid OTP."]);
-  } else if (otp.expiry !== undefined && otp.expiry < new Date()) {
-    otpErrorDetail = new ValidationErrorDetail("otp", ["OTP expired."]);
+    if (!otp) {
+      otpErrorDetail = new ValidationErrorDetail("otp", [
+        "Please generate OTP first.",
+      ]);
+    } else if (otp.otp !== otpToVerify) {
+      otpErrorDetail = new ValidationErrorDetail("otp", ["Invalid OTP."]);
+    } else if (otp.expiry !== undefined && otp.expiry < new Date()) {
+      otpErrorDetail = new ValidationErrorDetail("otp", ["OTP expired."]);
+    }
+
+    return otpErrorDetail;
   }
-
-  return otpErrorDetail;
 }
