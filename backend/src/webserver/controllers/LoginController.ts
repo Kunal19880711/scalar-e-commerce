@@ -54,17 +54,16 @@ export class LoginController {
 
       const phash = hashPassword(password as string);
       if (user.phash != phash) {
-        const apiError = new ApiError(
-          HttpStatus.Unauthorized,
-          [new ValidationErrorDetail("password", ["Incorrect Password."])]
-        );
+        const apiError = new ApiError(HttpStatus.Unauthenticated, [
+          new ValidationErrorDetail("password", ["Incorrect Password."]),
+        ]);
         next(apiError);
         return;
       }
 
       if (!user.isVerified) {
         const apiError = new ApiError(
-          HttpStatus.Unauthorized,
+          HttpStatus.Unauthenticated,
           "User is not verified.",
           [new ValidationErrorDetail("email", ["User is not verified."])]
         );
@@ -126,7 +125,7 @@ export async function decrpyptJwtTokenHelper(
   try {
     return await decrpyptJwtToken(token);
   } catch (err) {
-    throw new ApiError(HttpStatus.Unauthorized, "Invalid token", [
+    throw new ApiError(HttpStatus.Unauthenticated, "Invalid token", [
       new ValidationErrorDetail("token", ["Invalid token"]),
     ]);
   }

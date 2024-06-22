@@ -28,13 +28,13 @@ export abstract class HttpStatus {
     code: 400,
     message: "Validation Errors.",
   };
-  public static readonly Unauthorized: IHttpStatus = {
+  public static readonly Unauthenticated: IHttpStatus = {
     code: 401,
-    message: "You are Unauthorized. Please authenticate first.",
+    message: "You are Unauthenticated. Please authenticate first.",
   };
-  public static readonly Forbidden: IHttpStatus = {
+  public static readonly Unauthorized: IHttpStatus = {
     code: 403,
-    message: "You are Forbidden to access this resource.",
+    message: "You are Unauthorized to access this resource.",
   };
   public static readonly NotFound: IHttpStatus = {
     code: 404,
