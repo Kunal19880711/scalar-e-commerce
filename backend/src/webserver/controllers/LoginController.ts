@@ -13,7 +13,7 @@ import {
   hashPassword,
   envConfig,
   decrpyptJwtToken,
-} from "../../utils";
+} from "../../appUtils";
 import { IUser, UserModel } from "../../persistence";
 
 const config = envConfig();

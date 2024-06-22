@@ -10,8 +10,8 @@ import {
 
 import { controller, get, patch, post, del, bodyValidator } from "./decorators";
 import { Constants, HttpStatus, Paths, Roles } from "../../constants";
-import { Otp, generateOtp, hashPassword, isInEnumList } from "../../utils";
-import { generateErrorDetails } from "../utils";
+import { Otp, generateOtp, hashPassword, isInEnumList } from "../../appUtils";
+import { generateErrorDetails, respondSuccess } from "../webServerUtils";
 
 export type VerifyAccountRequest = {
   email: string;

@@ -6,7 +6,7 @@ import {
   getResourceById,
   updateResourceById,
   deleteResourceById,
-} from "../utils";
+} from "../webServerUtils";
 import { controller, get, patch, post, del } from "./decorators";
 import { Paths } from "../../constants";
 

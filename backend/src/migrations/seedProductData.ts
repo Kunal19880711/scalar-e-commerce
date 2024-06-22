@@ -6,7 +6,7 @@ import {
   SeedCollectionOptions,
   SeedingStrategy,
   seedCollection,
-} from "../utils";
+} from "../appUtils";
 
 const seedingOps: SeedCollectionOptions = {
   dbName: DBNames.Product,

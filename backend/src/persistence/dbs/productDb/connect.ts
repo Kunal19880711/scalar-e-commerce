@@ -1,5 +1,5 @@
 import mongoose, { Connection } from "mongoose";
-import { envConfig } from "../../../utils";
+import { envConfig } from "../../../appUtils";
 
 type IConnectionState = {
   connection: Connection | null;

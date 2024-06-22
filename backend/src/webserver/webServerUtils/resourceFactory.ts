@@ -1,6 +1,7 @@
 import { Model } from "mongoose";
 import { ApiError, IAsyncMiddleware } from "../types";
 import { HttpStatus } from "../../constants";
+import { respondSuccess } from "./respondUtils";
 
 export const createResource =
   <T>(model: Model<T>): IAsyncMiddleware =>
@@ -8,10 +9,7 @@ export const createResource =
     try {
       const newResource = req.body;
       const resource: T = await model.create(newResource);
-      res.status(HttpStatus.Created).json({
-        message: "Resource created successfully",
-        data: resource,
-      });
+      respondSuccess(res, HttpStatus.Created, resource);
     } catch (err: Error | any) {
       next(err);
     }
@@ -42,10 +40,7 @@ export const getAllResources =
         next(new ApiError(HttpStatus.NotFound, "Resource not found"));
         return;
       }
-      res.status(HttpStatus.OK).json({
-        message: "Resources found",
-        data: data,
-      });
+      respondSuccess(res, HttpStatus.Found, data);
     } catch (err: Error | any) {
       next(err);
     }
@@ -61,10 +56,7 @@ export const getResourceById =
         next(new ApiError(HttpStatus.NotFound, "Resource not found"));
         return;
       }
-      res.status(HttpStatus.OK).json({
-        message: "Resource found",
-        data: resource,
-      });
+      respondSuccess(res, HttpStatus.Found, resource);
     } catch (err: Error | any) {
       next(err);
     }
@@ -80,10 +72,7 @@ export const deleteResourceById =
         next(new ApiError(HttpStatus.NotFound, "Resource not found"));
         return;
       }
-      res.status(HttpStatus.OK).json({
-        message: "Resource deleted successfully",
-        data: deletedResource,
-      });
+      respondSuccess(res, HttpStatus.Deleted, deletedResource);
     } catch (err: Error | any) {
       next(err);
     }
@@ -105,10 +94,7 @@ export const updateResourceById =
         next(new ApiError(HttpStatus.NotFound, "Resource not found"));
         return;
       }
-      res.status(HttpStatus.OK).json({
-        message: "Resource updated successfully",
-        data: updateResource,
-      });
+      respondSuccess(res, HttpStatus.Updated, updateResource);
     } catch (err: Error | any) {
       next(err);
     }

@@ -10,7 +10,7 @@ import {
 } from "mongoose";
 import { getConnection } from "../connect";
 import { Roles, Constants } from "../../../../constants";
-import { Otp, hashPassword } from "../../../../utils";
+import { Otp, hashPassword } from "../../../../appUtils";
 
 
 export interface IUser extends Document {
