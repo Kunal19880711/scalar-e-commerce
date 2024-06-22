@@ -15,20 +15,20 @@ export function handleError(
     if('type' in err) {
         switch(err.type) {
             case ErrorTypes.ApiError:
-                res.status(err.status).json({
+                res.status(err.status.code).json({
                     message: err.message,
                     errorDetails: err.errorDetails
                 });
                 break;
             default:
-                res.status(HttpStatus.InternalServerError).json({
+                res.status(HttpStatus.InternalServerError.code).json({
                     message: err.message
                 });
                 break;
         }
     } else {
         console.error(err);
-        res.status(HttpStatus.InternalServerError).json({
+        res.status(HttpStatus.InternalServerError.code).json({
             message: err.message
         });
     }

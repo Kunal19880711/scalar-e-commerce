@@ -44,11 +44,7 @@ export class UserAccountController {
       }
 
       if (errorDetails.length > 0) {
-        const apiError = new ApiError(
-          HttpStatus.BadRequest,
-          "Validation Error",
-          errorDetails
-        );
+        const apiError = new ApiError(HttpStatus.BadRequest, errorDetails);
         next(apiError);
         return;
       }
@@ -57,10 +53,8 @@ export class UserAccountController {
       user.accountVerificationOtp = generateOtp(Constants.OtpLength);
       console.log(user.accountVerificationOtp);
       const savedUser = await user.save();
-      res.status(HttpStatus.Created).json({
-        message: `Please check your email ${savedUser.email} to verify your account`,
-        data: savedUser,
-      });
+      const message = `Please check your email ${savedUser.email} to verify your account`;
+      respondSuccess(res, HttpStatus.Created, savedUser, message);
     } catch (err) {
       next(err);
     }
@@ -113,10 +107,12 @@ export class UserAccountController {
         );
         return;
       }
-      res.status(HttpStatus.OK).json({
-        message: "Account verified successfully",
-        data: savedUser,
-      });
+      respondSuccess(
+        res,
+        HttpStatus.OK,
+        savedUser,
+        "Account verified successfully"
+      );
     } catch (err) {
       next(err);
     }
@@ -159,10 +155,8 @@ export class UserAccountController {
         );
         return;
       }
-      res.status(HttpStatus.OK).json({
-        message: `Please check your email ${savedUser.email} to reset your password`,
-        data: savedUser,
-      });
+      const message = `Please check your email ${savedUser.email} to reset your password`;
+      respondSuccess(res, HttpStatus.OK, savedUser, message);
     } catch (err) {
       next(err);
     }
@@ -225,10 +219,8 @@ export class UserAccountController {
         );
         return;
       }
-      res.status(HttpStatus.OK).json({
-        message: "Password reset successfully",
-        data: savedUser,
-      });
+      const message = "Password reset successfully";
+      respondSuccess(res, HttpStatus.OK, savedUser, message);
     } catch (err) {
       next(err);
     }

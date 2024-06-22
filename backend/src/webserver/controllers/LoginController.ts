@@ -15,6 +15,7 @@ import {
   decrpyptJwtToken,
 } from "../../appUtils";
 import { IUser, UserModel } from "../../persistence";
+import { respondSuccess } from "../webServerUtils";
 
 const config = envConfig();
 const cookieKey = config.SERVER_COOKIE_KEY;
@@ -55,7 +56,6 @@ export class LoginController {
       if (user.phash != phash) {
         const apiError = new ApiError(
           HttpStatus.Unauthorized,
-          "Incorrect Password.",
           [new ValidationErrorDetail("password", ["Incorrect Password."])]
         );
         next(apiError);
@@ -80,13 +80,11 @@ export class LoginController {
       const token = await createJwtToken(userInfo);
       res.cookie(cookieKey, token, { maxAge: cookieMaxAge, httpOnly: true });
 
-      res.status(HttpStatus.OK).json({
-        message: "Login successful",
-        data: {
-          user: userInfo,
-          token: token,
-        },
-      });
+      const responseData = {
+        user: userInfo,
+        token: token,
+      };
+      respondSuccess(res, HttpStatus.OK, responseData, "Login successful");
     } catch (err: Error | any) {
       next(err);
     }
@@ -104,13 +102,12 @@ export class LoginController {
       const payload: JwtPayload = await decrpyptJwtTokenHelper(token);
       const userInfo: IUserInfo = payload as IUserInfo;
       res.cookie(cookieKey, token, { maxAge: cookieMaxAge, httpOnly: true });
-      res.status(HttpStatus.OK).json({
-        message: "Login successful",
-        data: {
-          user: userInfo,
-          token: token,
-        },
-      });
+
+      const responseData = {
+        user: userInfo,
+        token: token,
+      };
+      respondSuccess(res, HttpStatus.OK, responseData, "Login successful");
     } catch (err: Error | any) {
       next(err);
     }
@@ -119,9 +116,7 @@ export class LoginController {
   @get(Paths.Logout)
   getLogout(req: Request, res: Response): void {
     res.clearCookie(cookieKey);
-    res.status(HttpStatus.OK).json({
-      message: "Logout successful",
-    });
+    respondSuccess(res, HttpStatus.OK, {}, "Logout successful");
   }
 }
 

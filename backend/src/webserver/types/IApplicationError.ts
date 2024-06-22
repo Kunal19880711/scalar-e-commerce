@@ -1,4 +1,4 @@
-import { HttpStatus } from "../../constants";
+import { HttpStatus, IHttpStatus } from "../../constants";
 
 export enum ErrorTypes {
   ApiError = "ApiError",
@@ -30,18 +30,27 @@ export class ValidationErrorDetail implements IValidationErrorDetail {
 
 export interface IApiError extends IApplicationError {
   type: ErrorTypes.ApiError;
-  status: HttpStatus;
+  status: IHttpStatus;
   errorDetails?: IErrorDetail[];
 }
 
 export class ApiError extends Error implements IApiError {
   type: ErrorTypes.ApiError = ErrorTypes.ApiError;
+  errorDetails?: IErrorDetail[];
 
   constructor(
-    public status: HttpStatus,
-    message: string,
-    public errorDetails?: IErrorDetail[]
+    public status: IHttpStatus,
+    messageOrErrorDetail?: string | IErrorDetail[],
+    errorDetails?: IErrorDetail[]
   ) {
-    super(message);
+    super(
+      messageOrErrorDetail && !Array.isArray(messageOrErrorDetail)
+        ? messageOrErrorDetail
+        : status.message
+    );
+    this.status = status;
+    this.errorDetails = Array.isArray(messageOrErrorDetail)
+      ? messageOrErrorDetail
+      : errorDetails;
   }
 }
