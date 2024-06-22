@@ -1,45 +1,9 @@
 import path from "node:path";
 import "reflect-metadata";
-import express, {
-  NextFunction,
-  RequestHandler,
-  Request,
-  Response,
-} from "express";
+import express, { RequestHandler } from "express";
 import { AppRouter } from "../../AppRouter";
 import { MetadataKeys, HttpMethods } from "./types";
-import { ApiError, ErrorDetailType, IErrorDetail } from "../../types";
-import { HttpStatus } from "../../../constants";
-
-function bodyValidators(requiredFields: string[]): RequestHandler {
-  return function (req: Request, res: Response, next: NextFunction): void {
-    let missingKeyPaths: string[] = [];
-
-    if (!req.body) {
-      missingKeyPaths = requiredFields;
-    } else {
-      const fields: string[] = Object.getOwnPropertyNames(req.body);
-      missingKeyPaths = requiredFields.filter(
-        (field: string) => !fields.includes(field)
-      );
-    }
-
-    if (missingKeyPaths.length) {
-      const errorDetails: IErrorDetail[] = missingKeyPaths.map(
-        (keyPath: string) => ({
-          type: ErrorDetailType.ValidationError,
-          keyPath,
-          errors: [`Path \`${keyPath}\` is required.`],
-        })
-      );
-
-      next(new ApiError(HttpStatus.BadRequest, "Validation Error", errorDetails));
-      return;
-    }
-
-    next();
-  };
-}
+import { bodyValidators } from "../../middlewares";
 
 export function controller(routePrefix: string) {
   return function (target: Function, ctx: Object) {
