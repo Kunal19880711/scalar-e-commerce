@@ -3,9 +3,25 @@ import "reflect-metadata";
 import express, { RequestHandler } from "express";
 import { AppRouter } from "../../AppRouter";
 import { MetadataKeys, HttpMethods } from "./types";
-import { bodyValidators } from "../../middlewares";
+import {
+  authentication,
+  authorization,
+  bodyValidators,
+} from "../../middlewares";
+import { Roles } from "../../../constants";
 
-export function controller(routePrefix: string) {
+export type ControllerConfig = {
+  routePrefix: string;
+  requireAuthentication?: boolean;
+  authorizedRoles?: Roles[];
+};
+
+export function controller(objOrString: string | ControllerConfig) {
+  const config: ControllerConfig =
+    typeof objOrString === "string"
+      ? { routePrefix: objOrString }
+      : objOrString;
+
   return function (target: Function, ctx: Object) {
     // console.log(
     //   target,
@@ -20,6 +36,12 @@ export function controller(routePrefix: string) {
         MetadataKeys.HttpMethod,
         routeHandler
       );
+
+      const authMiddlewares: RequestHandler[] = getAuthMiddlewares(
+        config,
+        routeHandler
+      );
+
       const middlewares: RequestHandler[] =
         Reflect.getMetadata(MetadataKeys.Middleware, routeHandler) || [];
 
@@ -30,7 +52,8 @@ export function controller(routePrefix: string) {
       if (routePath && httpMethod) {
         // console.log(`${routePrefix}${routePath} registed`);
         AppRouter.instance[httpMethod](
-          path.normalize(`${routePrefix}${routePath}`),
+          path.normalize(`${config.routePrefix}${routePath}`),
+          ...authMiddlewares,
           ...middlewares,
           bodyValidator,
           routeHandler
@@ -38,4 +61,32 @@ export function controller(routePrefix: string) {
       }
     }
   };
+}
+
+function getAuthMiddlewares(
+  config: ControllerConfig,
+  routeHandler: any
+): RequestHandler[] {
+  const authMiddlewares: RequestHandler[] = [];
+
+  const controllerNeedAuth = !!config.requireAuthentication;
+  const routeNeedAuth = !!Reflect.getMetadata(
+    MetadataKeys.Authentication,
+    routeHandler
+  );
+
+  if (controllerNeedAuth || routeNeedAuth) {
+    authMiddlewares.push(authentication);
+
+    // checking for roles
+    const rolesFromController: Roles[] = config.authorizedRoles || [];
+    const rolesFromRoute: Roles[] =
+      Reflect.getMetadata(MetadataKeys.Authorization, routeHandler) || [];
+    const authRoles: Roles[] = [...rolesFromController, ...rolesFromRoute];
+    if (Array.isArray(authRoles) && authRoles.length > 0) {
+      authMiddlewares.push(authorization(authRoles));
+    }
+  }
+
+  return authMiddlewares;
 }

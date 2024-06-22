@@ -8,7 +8,7 @@ import {
   deleteResourceById,
 } from "../webServerUtils";
 import { controller, get, patch, post, del } from "./decorators";
-import { Paths } from "../../constants";
+import { Paths, Roles } from "../../constants";
 
 const getAllUsers = getAllResources(UserModel);
 const getUserById = getResourceById(UserModel);
@@ -16,7 +16,11 @@ const createUser = createResource(UserModel);
 const updateUserById = updateResourceById(UserModel);
 const deleteUserById = deleteResourceById(UserModel);
 
-@controller(Paths.UserApi)
+@controller({
+  routePrefix: Paths.UserApi,
+  requireAuthentication: true,
+  authorizedRoles: [Roles.Admin],
+})
 export class UserController {
   @get(Paths.EMPTY)
   async getAllUsers(

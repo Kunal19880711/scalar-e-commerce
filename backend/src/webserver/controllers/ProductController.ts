@@ -7,8 +7,16 @@ import {
   deleteResourceById,
   updateResourceById,
 } from "../webServerUtils";
-import { controller, get, patch, post, del } from "./decorators";
-import { Paths } from "../../constants";
+import {
+  controller,
+  get,
+  patch,
+  post,
+  del,
+  requireAuthentication,
+  requireAuthorization,
+} from "./decorators";
+import { Paths, Roles } from "../../constants";
 
 const getAllProducts = getAllResources(ProductModel);
 const getProductById = getResourceById(ProductModel);
@@ -16,9 +24,14 @@ const createProduct = createResource(ProductModel);
 const deleteProductById = deleteResourceById(ProductModel);
 const updateProductById = updateResourceById(ProductModel);
 
-@controller(Paths.ProductApi)
+@controller({
+  routePrefix: Paths.ProductApi,
+  requireAuthentication: true,
+  authorizedRoles: [Roles.Admin],
+})
 export class ProductController {
   @get(Paths.EMPTY)
+  @requireAuthorization(Roles.Buyer)
   async getAllProducts(
     req: Request,
     res: Response,
@@ -28,6 +41,7 @@ export class ProductController {
   }
 
   @get(Paths.ID)
+  @requireAuthorization(Roles.Buyer)
   async getProductById(
     req: Request,
     res: Response,
@@ -37,6 +51,7 @@ export class ProductController {
   }
 
   @post(Paths.EMPTY)
+  @requireAuthorization(Roles.Seller)
   async createProduct(
     req: Request,
     res: Response,
@@ -46,6 +61,7 @@ export class ProductController {
   }
 
   @patch(Paths.ID)
+  @requireAuthorization(Roles.Seller)
   async updateProductById(
     req: Request,
     res: Response,
@@ -55,6 +71,7 @@ export class ProductController {
   }
 
   @del(Paths.ID)
+  @requireAuthorization(Roles.Seller)
   async deleteProductById(
     req: Request,
     res: Response,

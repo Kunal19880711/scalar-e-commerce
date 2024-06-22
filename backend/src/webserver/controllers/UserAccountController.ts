@@ -1,16 +1,14 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import { IUser, UserModel } from "../../persistence";
 import {
-  ApiError,
-  ErrorDetailType,
-  IRequestWithJsonBody,
+  ApiError, IRequestWithJsonBody,
   IValidationErrorDetail,
-  ValidationErrorDetail,
+  ValidationErrorDetail
 } from "../types";
 
-import { controller, get, patch, post, del, bodyValidator } from "./decorators";
-import { Constants, HttpStatus, Paths, Roles } from "../../constants";
-import { Otp, generateOtp, hashPassword, isInEnumList } from "../../appUtils";
+import { controller, post, bodyValidator } from "./decorators";
+import { Constants, HttpStatus, Paths } from "../../constants";
+import { Otp, generateOtp, isInEnumList } from "../../appUtils";
 import { generateErrorDetails, respondSuccess } from "../webServerUtils";
 
 export type VerifyAccountRequest = {
