@@ -1,0 +1,35 @@
+import {Request, Response, NextFunction } from "express";
+import { ErrorTypes, IApiError } from "../types";
+import { HttpStatus } from "../../constants";
+
+export function handleError(
+    err: Error | IApiError,
+    req: Request,
+    res: Response,
+    next: NextFunction
+): void {
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    if('type' in err) {
+        switch(err.type) {
+            case ErrorTypes.ApiError:
+                res.status(err.status).json({
+                    message: err.message,
+                    errorDetails: err.errorDetails
+                });
+                break;
+            default:
+                res.status(HttpStatus.InternalServerError).json({
+                    message: err.message
+                });
+                break;
+        }
+    } else {
+        console.error(err);
+        res.status(HttpStatus.InternalServerError).json({
+            message: err.message
+        });
+    }
+}
