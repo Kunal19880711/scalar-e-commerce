@@ -48,14 +48,13 @@ export async function seedCollection(
       await model.insertMany(entries);
       console.log("document added to DB");
     }
-
   } catch (err) {
     console.error(err);
   } finally {
     if (connection) {
-      await connection.close(true);
+      await connection.close();
       console.log("db disconnected");
-      await connection.destroy(true);
+      await connection.destroy();
       console.log("db connection destroyed");
     }
   }
