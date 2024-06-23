@@ -11,6 +11,8 @@ import { controller, post, bodyValidator } from "./decorators";
 import { Constants, HttpStatus, Paths } from "../../constants";
 import { Otp, generateOtp, isInEnumList } from "../../appUtils";
 import { generateErrorDetails, respondSuccess } from "../webServerUtils";
+import { MailInfo, sendMail } from "../../communications";
+import nodemailer from "nodemailer";
 
 export type VerifyAccountRequest = {
   email: string;
@@ -50,9 +52,13 @@ export class UserAccountController {
 
       user.isVerified = false;
       user.accountVerificationOtp = generateOtp(Constants.OtpLength);
-      console.log(user.accountVerificationOtp);
       const savedUser = await user.save();
       const message = `Please check your email ${savedUser.email} to verify your account`;
+      const mailInfo = await sendMailToVerifyAccount(
+        savedUser,
+        user.accountVerificationOtp
+      );
+      console.log(mailInfo);
       respondSuccess(res, HttpStatus.Created, savedUser, message);
     } catch (err) {
       next(err);
@@ -78,7 +84,7 @@ export class UserAccountController {
         return;
       }
 
-      const otpErrorDetail = this.verifyOtp(user.accountVerificationOtp, otp);
+      const otpErrorDetail = verifyOtp(user.accountVerificationOtp, otp);
       if (otpErrorDetail) {
         next(
           new ApiError(HttpStatus.BadRequest, "Invalid OTP", [otpErrorDetail])
@@ -135,7 +141,6 @@ export class UserAccountController {
         );
         return;
       }
-
       const otp = generateOtp(Constants.OtpLength, Constants.OtpLifeInSeconds);
       const savedUser: IUser | null = await UserModel.findByIdAndUpdate(
         user._id,
@@ -155,6 +160,8 @@ export class UserAccountController {
         return;
       }
       const message = `Please check your email ${savedUser.email} to reset your password`;
+      const mailInfo = await sendMailToResetPassword(savedUser, otp);
+      console.log(mailInfo);
       respondSuccess(res, HttpStatus.OK, savedUser, message);
     } catch (err) {
       next(err);
@@ -181,7 +188,7 @@ export class UserAccountController {
       }
 
       const errorDetails: IValidationErrorDetail[] = [];
-      const otpErrorDetail = this.verifyOtp(user.passwordRecoveryOtp, otp);
+      const otpErrorDetail = verifyOtp(user.passwordRecoveryOtp, otp);
       if (otpErrorDetail) {
         errorDetails.push(otpErrorDetail);
       }
@@ -224,23 +231,74 @@ export class UserAccountController {
       next(err);
     }
   }
+}
 
-  verifyOtp(
-    otp: Otp | undefined,
-    otpToVerify: string
-  ): ValidationErrorDetail | null {
-    let otpErrorDetail: IValidationErrorDetail | null = null;
+function verifyOtp(
+  otp: Otp | undefined,
+  otpToVerify: string
+): ValidationErrorDetail | null {
+  let otpErrorDetail: IValidationErrorDetail | null = null;
 
-    if (!otp) {
-      otpErrorDetail = new ValidationErrorDetail("otp", [
-        "Please generate OTP first.",
-      ]);
-    } else if (otp.otp !== otpToVerify) {
-      otpErrorDetail = new ValidationErrorDetail("otp", ["Invalid OTP."]);
-    } else if (otp.expiry !== undefined && otp.expiry < new Date()) {
-      otpErrorDetail = new ValidationErrorDetail("otp", ["OTP expired."]);
-    }
-
-    return otpErrorDetail;
+  if (!otp) {
+    otpErrorDetail = new ValidationErrorDetail("otp", [
+      "Please generate OTP first.",
+    ]);
+  } else if (otp.otp !== otpToVerify) {
+    otpErrorDetail = new ValidationErrorDetail("otp", ["Invalid OTP."]);
+  } else if (otp.expiry !== undefined && otp.expiry < new Date()) {
+    otpErrorDetail = new ValidationErrorDetail("otp", ["OTP expired."]);
   }
+
+  return otpErrorDetail;
+}
+
+async function sendMailToVerifyAccount(
+  user: IUser,
+  otp: Otp
+): Promise<MailInfo> {
+  const message = /*html*/ `
+  <h1>Welcome to our platform!</h1>
+  <p>Dear ${user.name},</p>
+  <p>Thank you for joining our platform. We are excited to have you on board!</p>
+  <p>If you have any questions or need assistance, please don't hesitate to reach out to our support team.</p>
+  <p/>
+  <p>Please use the following OTP to verify your account:</p>
+  <p>${otp.otp}</p>
+  <p/>
+  <p>Thank you,</p>
+  <p>Best regards,</p>
+  <p>Your Platform Team</p>
+  `;
+  const mailOps = {
+    to: user.email,
+    subject: "Verify your account",
+    text: "Verify your account",
+    html: message,
+  };
+  return sendMail(mailOps);
+}
+
+async function sendMailToResetPassword(
+  user: IUser,
+  otp: Otp
+): Promise<MailInfo> {
+  const message = /*html*/ `
+  <h1>Reset your password</h1>
+  <p>Dear ${user.name},</p>
+  <p>Please use the following OTP to reset your password:</p>
+  <p>${otp.otp}</p>
+  <p/>
+  <p>If you have any questions or need assistance, please don't hesitate to reach out to our support team.</p>
+  <p/>
+  <p>Thank you,</p>
+  <p>Best regards,</p>
+  <p>Your Platform Team</p>
+  `;
+  const mailOps = {
+    to: user.email,
+    subject: "Reset your password",
+    text: "Reset your password",
+    html: message,
+  };
+  return sendMail(mailOps);
 }
