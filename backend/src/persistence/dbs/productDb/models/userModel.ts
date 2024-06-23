@@ -1,17 +1,14 @@
-import crypto from "crypto";
 
 import {
   CallbackWithoutResultAndOptionalError,
   Connection,
   Document,
   Model,
-  Schema,
-  model,
+  Schema
 } from "mongoose";
 import { getConnection } from "../connect";
-import { Roles, Constants } from "../../../../constants";
+import { Roles } from "../../../../constants";
 import { Otp, hashPassword } from "../../../../appUtils";
-
 
 export interface IUser extends Document {
   name?: string;
@@ -75,7 +72,18 @@ const userSchema: Schema = new Schema<IUser, Model<IUser>>(
       expiry: Date,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+    toJSON: {
+      virtuals: true,
+      transform: (_, ret) => {
+        delete ret.accountVerificationOtp;
+        delete ret.passwordRecoveryOtp;
+        return ret;
+      },
+    },
+  }
 );
 
 userSchema.pre<IUser>("save", function (next) {
@@ -83,40 +91,6 @@ userSchema.pre<IUser>("save", function (next) {
   this.password = undefined;
   this.confirmPassword = undefined;
   next();
-});
-
-// const roles = ["admin", "seller", "buyer"];
-
-// userSchema.pre<IUser>("save", function (next) {
-//   const isPresent = roles.includes(this.role as string);
-//   if (!isPresent) {
-//     next(new Error("Role is not valid"));
-//   } else {
-//     next();
-//   }
-// });
-
-// userSchema.pre<IUser>("findOne", function (this: IUser, next) {
-//   this.select("-password");
-//   next();
-// });
-
-// userSchema.pre<IUser>("find", function (next) {
-//   this.select("-password");
-//   next();
-// });
-
-// userSchema.post<IUser>("save", function (err, doc, next) {
-//   if (err.name === "MongoError" && err.code === 11000) {
-//     console.log(err);
-//     next(new Error("Email is already in registered"));
-//   } else {
-//     next();
-//   }
-// });
-
-userSchema.set("toJSON", {
-  virtuals: true,
 });
 
 const connection: Connection = getConnection();
