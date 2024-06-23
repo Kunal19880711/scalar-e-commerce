@@ -1,5 +1,5 @@
 import { Response, NextFunction, RequestHandler, Request } from "express";
-import { JwtPayload, decrpyptJwtToken, envConfig } from "../../appUtils";
+import { JwtPayload, decryptJwtToken, envConfig } from "../../appUtils";
 import { ApiError, IRequestWithJsonBody, IUserInfo } from "../types";
 import { HttpStatus } from "../../constants";
 
@@ -29,7 +29,7 @@ export async function decryptJwtTokenHelper(
   token: string
 ): Promise<JwtPayload> {
   try {
-    return await decrpyptJwtToken(token);
+    return await decryptJwtToken(token);
   } catch (err) {
     throw new ApiError(HttpStatus.Unauthenticated);
   }

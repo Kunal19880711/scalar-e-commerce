@@ -19,7 +19,7 @@ export function createJwtToken(payload: JwtPayload): Promise<string> {
   });
 }
 
-export async function decrpyptJwtToken(token: string): Promise<JwtPayload> {
+export async function decryptJwtToken(token: string): Promise<JwtPayload> {
   return new Promise((resolve, reject) => {
     jwt.verify(token, jwtSecret, (err, decoded) => {
       if (err) {
