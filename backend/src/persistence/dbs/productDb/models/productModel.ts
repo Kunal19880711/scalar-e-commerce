@@ -18,23 +18,11 @@ const productSchema = new Schema<IProduct, Model<IProduct>>(
       required: [true, "product title is required"],
       minLength: [4, "product title must be at least 4 characters"],
     },
-
     price: {
       type: Number,
       required: [true, "product price is required"],
       min: [0, "price cannot be negative"],
     },
-    // discount: {
-    //   type: Number,
-    //   default: 0,
-    //   min: [0, "discount cannot be negative"],
-    //   validate: [
-    //     function () {
-    //       return this.discount <= this.price;
-    //     },
-    //     "discount cannot be greater than price",
-    //   ],
-    // },
     description: {
       type: String,
       required: [true, "product description is required"],
@@ -53,12 +41,12 @@ const productSchema = new Schema<IProduct, Model<IProduct>>(
   },
   {
     timestamps: true,
+    versionKey: false,
+    toJSON: {
+      virtuals: true,
+    },
   }
 );
-
-productSchema.set("toJSON", {
-  virtuals: true,
-});
 
 const connection: Connection = getConnection();
 
