@@ -18,6 +18,10 @@ export type VerifyAccountRequest = {
   otp: string;
 };
 
+export type ResendVerificationCodeRequest = {
+  email: string;
+};
+
 export type ForgotPasswordRequest = {
   email: string;
 };
@@ -26,6 +30,10 @@ export type ResetPasswordRequest = {
   password: string;
   confirmPassword: string;
 } & VerifyAccountRequest;
+
+const UserNotFoundError = new ApiError(HttpStatus.NotFound, "User not found", [
+  new ValidationErrorDetail("email", ["User not found."]),
+]);
 
 @controller(Paths.AccountApi)
 export class UserAccountController {
@@ -52,7 +60,7 @@ export class UserAccountController {
       user.isVerified = false;
       user.accountVerificationOtp = generateOtp(Constants.OtpLength);
       const savedUser = await user.save();
-      
+
       const message = `Please check your email ${savedUser.email} to verify your account`;
       const mailInfo = await sendMailToVerifyAccount(
         savedUser,
@@ -60,6 +68,62 @@ export class UserAccountController {
       );
 
       respondSuccess(res, HttpStatus.Created, user, message);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @post(Paths.ResendVerification)
+  @bodyValidator("email")
+  async resendVerificationCode(
+    req: IRequestWithJsonBody<ResendVerificationCodeRequest>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { email } = req.body;
+      let user = await UserModel.findOne({ email });
+      if (!user) {
+        next(UserNotFoundError);
+        return;
+      }
+
+      if (user.isVerified) {
+        next(
+          new ApiError(HttpStatus.BadRequest, "User already verified", [
+            new ValidationErrorDetail("email", ["User already verified."]),
+          ])
+        );
+        return;
+      }
+
+      if (!user.accountVerificationOtp) {
+        const otp = generateOtp(
+          Constants.OtpLength,
+          Constants.OtpLifeInSeconds
+        );
+        user = await UserModel.findByIdAndUpdate(
+          user._id,
+          {
+            accountVerificationOtp: otp,
+          },
+          {
+            returnDocument: "after",
+          }
+        );
+        if (!user) {
+          next(UserNotFoundError);
+          return;
+        }
+      }
+
+      const message = `Please check your email ${user.email} to verify your account`;
+      const mailInfo = await sendMailToVerifyAccount(
+        user,
+        user.accountVerificationOtp as Otp
+      );
+
+      respondSuccess(res, HttpStatus.OK, user, message);
     } catch (err) {
       next(err);
     }
@@ -76,11 +140,7 @@ export class UserAccountController {
       const { email, otp } = req.body;
       const user = await UserModel.findOne({ email });
       if (!user) {
-        next(
-          new ApiError(HttpStatus.NotFound, "User not found", [
-            new ValidationErrorDetail("email", ["User not found."]),
-          ])
-        );
+        next(UserNotFoundError);
         return;
       }
 
@@ -105,11 +165,7 @@ export class UserAccountController {
         }
       );
       if (!savedUser) {
-        next(
-          new ApiError(HttpStatus.NotFound, "User not found", [
-            new ValidationErrorDetail("email", ["User not found."]),
-          ])
-        );
+        next(UserNotFoundError);
         return;
       }
       respondSuccess(
@@ -134,11 +190,7 @@ export class UserAccountController {
       const { email } = req.body;
       const user = await UserModel.findOne({ email });
       if (!user) {
-        next(
-          new ApiError(HttpStatus.NotFound, "User not found", [
-            new ValidationErrorDetail("email", ["User not found."]),
-          ])
-        );
+        next(UserNotFoundError);
         return;
       }
       const otp = generateOtp(Constants.OtpLength, Constants.OtpLifeInSeconds);
@@ -152,16 +204,11 @@ export class UserAccountController {
         }
       );
       if (!savedUser) {
-        next(
-          new ApiError(HttpStatus.NotFound, "User not found", [
-            new ValidationErrorDetail("email", ["User not found."]),
-          ])
-        );
+        next(UserNotFoundError);
         return;
       }
       const message = `Please check your email ${savedUser.email} to reset your password`;
       const mailInfo = await sendMailToResetPassword(savedUser, otp);
-      console.log(mailInfo);
       respondSuccess(res, HttpStatus.OK, savedUser, message);
     } catch (err) {
       next(err);
@@ -179,11 +226,7 @@ export class UserAccountController {
       const { email, otp, password, confirmPassword } = req.body;
       const user = await UserModel.findOne({ email });
       if (!user) {
-        next(
-          new ApiError(HttpStatus.NotFound, "User not found", [
-            new ValidationErrorDetail("email", ["User not found."]),
-          ])
-        );
+        next(UserNotFoundError);
         return;
       }
 
@@ -218,11 +261,7 @@ export class UserAccountController {
         }
       );
       if (!savedUser) {
-        next(
-          new ApiError(HttpStatus.NotFound, "User not found", [
-            new ValidationErrorDetail("email", ["User not found."]),
-          ])
-        );
+        next(UserNotFoundError);
         return;
       }
       const message = "Password reset successfully";

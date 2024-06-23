@@ -13,6 +13,7 @@ export enum Paths {
   ProductApi = Paths.Api + Paths.Product,
   UserApi = Paths.Api + Paths.User,
   AccountApi = Paths.Api + Paths.Account,
+  ResendVerification = "/resendverification",
   VerifyAccount = "/verify",
   ForgotPassword = "/forgotpassword",
   ResetPassword = "/resetpassword",
