@@ -12,7 +12,6 @@ import { Constants, HttpStatus, Paths } from "../../constants";
 import { Otp, generateOtp, isInEnumList } from "../../appUtils";
 import { generateErrorDetails, respondSuccess } from "../webServerUtils";
 import { MailInfo, sendMail } from "../../communications";
-import nodemailer from "nodemailer";
 
 export type VerifyAccountRequest = {
   email: string;
@@ -53,13 +52,14 @@ export class UserAccountController {
       user.isVerified = false;
       user.accountVerificationOtp = generateOtp(Constants.OtpLength);
       const savedUser = await user.save();
+      
       const message = `Please check your email ${savedUser.email} to verify your account`;
       const mailInfo = await sendMailToVerifyAccount(
         savedUser,
         user.accountVerificationOtp
       );
-      console.log(mailInfo);
-      respondSuccess(res, HttpStatus.Created, savedUser, message);
+
+      respondSuccess(res, HttpStatus.Created, user, message);
     } catch (err) {
       next(err);
     }
