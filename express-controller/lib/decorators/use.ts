@@ -1,7 +1,7 @@
-import 'reflect-metadata';
+import "reflect-metadata";
 
-import { RequestHandler } from 'express';
-import { MetadataKeys, RequestHandlerDecorator } from './types';
+import { RequestHandler } from "express";
+import { MetadataKeys, RequestHandlerDecorator } from "./types";
 
 export function use(middleware: RequestHandler): RequestHandlerDecorator {
   return function (target: Function, ctx: ClassMethodDecoratorContext): void {

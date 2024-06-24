@@ -30,12 +30,17 @@ export function controller(objOrString: string | ControllerConfig) {
         routeHandler
       );
 
-      const middlewares: RequestHandler[] =
+      let middlewares: RequestHandler[] =
         Reflect.getMetadata(MetadataKeys.Middleware, routeHandler) || [];
+      middlewares = middlewares.reverse();
 
       if (routePath && httpMethod) {
         const router: Router = config.router || AppRouter.instance;
-        // console.log(`${routePrefix}${routePath} registed`);
+        // console.log(
+        //   httpMethod,
+        //   `${config.routePrefix}${routePath} registed`,
+        //   middlewares.map((m) => m.toString())
+        // );
         router[httpMethod](
           path.normalize(`${config.routePrefix}${routePath}`),
           ...middlewares,
