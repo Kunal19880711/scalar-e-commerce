@@ -2,7 +2,7 @@ import { NextFunction, RequestHandler, Request, Response } from "express";
 import { ApiError, ErrorDetailType, IErrorDetail } from "../types";
 import { HttpStatus } from "../../constants";
 
-export function bodyValidators(requiredFields: string[]): RequestHandler {
+export function bodyValidator(requiredFields: string[]): RequestHandler {
   return function (req: Request, res: Response, next: NextFunction): void {
     try {
       let missingKeyPaths: string[] = [];

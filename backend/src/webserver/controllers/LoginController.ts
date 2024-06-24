@@ -1,9 +1,6 @@
 import { NextFunction, Response, Request } from "express";
-import {controller, post, get} from "express-controller";
-import {
-  bodyValidator,
-  requireAuth,
-} from "./decorators";
+import { controller, post, get } from "express-controller";
+import { requireBodyValidator, requireAuth } from "./decorators";
 import {
   ApiError,
   IRequestWithJsonBody,
@@ -37,7 +34,7 @@ export type SsoLoginRequest = {
 @controller(Paths.Auth)
 export class LoginController {
   @post(Paths.Login)
-  @bodyValidator("email", "password")
+  @requireBodyValidator("email", "password")
   async postLogin(
     req: IRequestWithJsonBody<LoginRequest>,
     res: Response,
@@ -94,7 +91,7 @@ export class LoginController {
   }
 
   @post(Paths.SsoLogin)
-  @bodyValidator("token")
+  @requireBodyValidator("token")
   async postSsoLogin(
     req: IRequestWithJsonBody<SsoLoginRequest>,
     res: Response,

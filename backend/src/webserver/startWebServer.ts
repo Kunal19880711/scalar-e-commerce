@@ -2,7 +2,7 @@ import express from "express";
 import cors, { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
 import "./controllers";
-import { AppRouter } from "express-controller" ;
+import { AppRouter } from "express-controller";
 import { envConfig } from "../appUtils";
 import { handleError } from "./middlewares";
 

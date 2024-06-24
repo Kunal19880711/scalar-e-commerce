@@ -1,4 +1,4 @@
-import { Model } from "mongoose";
+import { HydratedDocument, Model } from "mongoose";
 import { ApiError, IAsyncMiddleware } from "../types";
 import { HttpStatus } from "../../constants";
 import { respondSuccess } from "./respondUtils";
@@ -83,14 +83,14 @@ export const updateResourceById =
   async (req, res, next) => {
     try {
       const id = req.params.id;
-      const updateResource: T | null = await model.findByIdAndUpdate(
-        id,
-        req.body,
-        {
-          returnDocument: "after",
-        }
-      );
-      if (!updateResource) {
+      const resource: HydratedDocument<T> | null = await model.findById(id);
+      if (!resource) {
+        next(new ApiError(HttpStatus.NotFound, "Resource not found"));
+        return;
+      }
+      resource.set(req.body);
+      const updateResource = await resource.save();
+      if (!resource) {
         next(new ApiError(HttpStatus.NotFound, "Resource not found"));
         return;
       }

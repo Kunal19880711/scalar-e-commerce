@@ -1,4 +1,4 @@
-import { HttpStatus, IHttpStatus } from "../../constants";
+import { IHttpStatus } from "../../constants";
 
 export enum ErrorTypes {
   ApiError = "ApiError",

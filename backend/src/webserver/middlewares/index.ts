@@ -1,3 +1,4 @@
 export * from "./auth";
-export * from "./bodyValidators";
+export * from "./bodyValidator";
+export * from "./deleteKeyPaths";
 export * from "./handleError";

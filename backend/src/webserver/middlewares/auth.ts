@@ -5,7 +5,7 @@ import { HttpStatus, Roles } from "../../constants";
 
 const config = envConfig();
 
-export function auth(roles?: Roles[]): RequestHandler {
+export function authMiddleware(roles?: Roles[]): RequestHandler {
   return async function (
     req: Request,
     res: Response,

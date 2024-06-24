@@ -1,18 +1,28 @@
-import { Response, NextFunction } from "express";
-import { controller, post } from "express-controller";
+import { Request, Response, NextFunction } from "express";
+import { controller, patch, post } from "express-controller";
 import { IUser, UserModel } from "../../persistence";
 import {
   ApiError,
-  IRequestWithJsonBody,
-  IValidationErrorDetail,
-  ValidationErrorDetail,
+  IRequestWithJsonBody, IValidationErrorDetail,
+  PotentialBugs,
+  ValidationErrorDetail
 } from "../types";
 
-import { bodyValidator } from "./decorators";
+import {
+  requireBodyValidator,
+  requireDeleteKeyPaths,
+  requireAuth,
+} from "./decorators";
 import { Constants, HttpStatus, Paths } from "../../constants";
 import { Otp, generateOtp, isInEnumList } from "../../appUtils";
-import { generateErrorDetails, respondSuccess } from "../webServerUtils";
+import {
+  generateErrorDetails,
+  respondSuccess,
+  updateResourceById,
+} from "../webServerUtils";
 import { MailInfo, sendMail } from "../../communications";
+
+const updateUserById = updateResourceById(UserModel);
 
 export type VerifyAccountRequest = {
   email: string;
@@ -75,7 +85,7 @@ export class UserAccountController {
   }
 
   @post(Paths.ResendVerification)
-  @bodyValidator("email")
+  @requireBodyValidator("email")
   async resendVerificationCode(
     req: IRequestWithJsonBody<ResendVerificationCodeRequest>,
     res: Response,
@@ -131,7 +141,7 @@ export class UserAccountController {
   }
 
   @post(Paths.VerifyAccount)
-  @bodyValidator("email", "otp")
+  @requireBodyValidator("email", "otp")
   async verifyAccount(
     req: IRequestWithJsonBody<VerifyAccountRequest>,
     res: Response,
@@ -181,7 +191,7 @@ export class UserAccountController {
   }
 
   @post(Paths.ForgotPassword)
-  @bodyValidator("email")
+  @requireBodyValidator("email")
   async forgotPassword(
     req: IRequestWithJsonBody<ForgotPasswordRequest>,
     res: Response,
@@ -214,10 +224,10 @@ export class UserAccountController {
     } catch (err) {
       next(err);
     }
-  }
+}
 
   @post(Paths.ResetPassword)
-  @bodyValidator("email", "otp", "password", "confirmPassword")
+  @requireBodyValidator("email", "otp", "password", "confirmPassword")
   async resetPassword(
     req: IRequestWithJsonBody<ResetPasswordRequest>,
     res: Response,
