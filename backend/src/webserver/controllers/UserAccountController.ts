@@ -281,6 +281,32 @@ export class UserAccountController {
       next(err);
     }
   }
+
+  @patch(Paths.EMPTY)
+  @requireAuth()
+  @requireDeleteKeyPaths(
+    "role",
+    "isVerified",
+    "accountVerificationOtp",
+    "passwordRecoveryOtp"
+  )
+  async updateOwnAccount(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userInfo = req?.requestInfo?.userInfo;
+      if (!userInfo) {
+        next(PotentialBugs.AuthDecoratiorBug);
+        return;
+      }
+      req.params.id = userInfo.id;
+      return await updateUserById(req, res, next);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 function verifyOtp(
