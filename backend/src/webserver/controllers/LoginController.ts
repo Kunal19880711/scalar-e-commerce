@@ -1,10 +1,8 @@
 import { NextFunction, Response, Request } from "express";
+import {controller, post, get} from "express-controller";
 import {
-  controller,
   bodyValidator,
-  post,
-  get,
-  requireAuthentication,
+  requireAuth,
 } from "./decorators";
 import {
   ApiError,
@@ -119,7 +117,7 @@ export class LoginController {
   }
 
   @get(Paths.Logout)
-  @requireAuthentication()
+  @requireAuth()
   getLogout(req: Request, res: Response): void {
     res.clearCookie(cookieKey);
     respondSuccess(res, HttpStatus.OK, {}, "Logout successful");

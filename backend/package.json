@@ -2,7 +2,7 @@
   "name": "scalar-e-commerce-backend",
   "version": "1.0.0",
   "description": "Creating a basic / example server using express and nodejs",
-  "main": "src/index.ts",
+  "main": "build/index.js",
   "scripts": {
     "dev:build": "tsc -w",
     "dev:run": "nodemon build/index.js",
@@ -30,6 +30,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
+    "express-controller": "file:../express-controller",
     "googleapis": "^140.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.7.0",

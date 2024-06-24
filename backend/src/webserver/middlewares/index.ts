@@ -1,4 +1,3 @@
-export * from "./authentication";
-export * from "./authorization";
+export * from "./auth";
 export * from "./bodyValidators";
 export * from "./handleError";

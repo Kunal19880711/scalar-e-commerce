@@ -11,7 +11,10 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.codeActionsOnSave": ["source.fixAll.eslint"],
     "eslint.validate": ["javascript", "javascriptreact", "typescript", "vue"],
-    "typescript.tsdk": "node_modules/typescript/lib"
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "exportall.config.folderListener": [
+      "/backend/src/webserver/controllers/decorators"
+    ]
   },
   "extensions": {
     // List of extensions which should be recommended for users of this workspace.

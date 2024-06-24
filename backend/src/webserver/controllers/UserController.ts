@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { IUser, UserModel } from "../../persistence";
+import { controller, get, patch, post, del } from "express-controller";
+import { UserModel } from "../../persistence";
 import {
   getAllResources,
   createResource,
@@ -7,8 +8,9 @@ import {
   updateResourceById,
   deleteResourceById,
 } from "../webServerUtils";
-import { controller, get, patch, post, del } from "./decorators";
+
 import { Paths, Roles } from "../../constants";
+import { requireAuth } from "./decorators";
 
 const getAllUsers = getAllResources(UserModel);
 const getUserById = getResourceById(UserModel);
@@ -16,13 +18,10 @@ const createUser = createResource(UserModel);
 const updateUserById = updateResourceById(UserModel);
 const deleteUserById = deleteResourceById(UserModel);
 
-@controller({
-  routePrefix: Paths.UserApi,
-  requireAuthentication: true,
-  authorizedRoles: [Roles.Admin],
-})
+@controller(Paths.UserApi)
 export class UserController {
   @get(Paths.EMPTY)
+  @requireAuth(Roles.Admin)
   async getAllUsers(
     req: Request,
     res: Response,
@@ -32,6 +31,7 @@ export class UserController {
   }
 
   @get(Paths.ID)
+  @requireAuth(Roles.Admin)
   async getUserById(
     req: Request,
     res: Response,
@@ -41,6 +41,7 @@ export class UserController {
   }
 
   @post(Paths.EMPTY)
+  @requireAuth(Roles.Admin)
   async createUser(
     req: Request,
     res: Response,
@@ -50,6 +51,7 @@ export class UserController {
   }
 
   @patch(Paths.ID)
+  @requireAuth(Roles.Admin)
   async updateUserById(
     req: Request,
     res: Response,
@@ -59,6 +61,7 @@ export class UserController {
   }
 
   @del(Paths.ID)
+  @requireAuth(Roles.Admin)
   async deleteUserById(
     req: Request,
     res: Response,

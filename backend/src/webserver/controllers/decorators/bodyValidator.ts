@@ -1,8 +1,7 @@
-import 'reflect-metadata';
-import { RequestHandlerDecorator, MetadataKeys } from './types';
+import "reflect-metadata";
+import { use, RequestHandlerDecorator, MetadataKeys } from "express-controller";
+import { bodyValidators } from "../../middlewares";
 
-export function bodyValidator(...requiredFields: string[]):  RequestHandlerDecorator {
-  return function (target: Function, ctx: ClassMethodDecoratorContext): void {
-    Reflect.defineMetadata(MetadataKeys.Validator, requiredFields, target);
-  };
-}
+export const bodyValidator = (
+  ...requiredFields: string[]
+): RequestHandlerDecorator => use(bodyValidators(requiredFields));

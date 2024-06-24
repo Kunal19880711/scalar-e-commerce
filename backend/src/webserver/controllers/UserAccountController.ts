@@ -1,4 +1,5 @@
 import { Response, NextFunction } from "express";
+import { controller, post } from "express-controller";
 import { IUser, UserModel } from "../../persistence";
 import {
   ApiError,
@@ -7,7 +8,7 @@ import {
   ValidationErrorDetail,
 } from "../types";
 
-import { controller, post, bodyValidator } from "./decorators";
+import { bodyValidator } from "./decorators";
 import { Constants, HttpStatus, Paths } from "../../constants";
 import { Otp, generateOtp, isInEnumList } from "../../appUtils";
 import { generateErrorDetails, respondSuccess } from "../webServerUtils";

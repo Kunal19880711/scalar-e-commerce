@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { controller, get, patch, post, del } from "express-controller";
 import { ProductModel } from "../../persistence";
 import {
   getAllResources,
@@ -7,15 +8,7 @@ import {
   deleteResourceById,
   updateResourceById,
 } from "../webServerUtils";
-import {
-  controller,
-  get,
-  patch,
-  post,
-  del,
-  requireAuthentication,
-  requireAuthorization,
-} from "./decorators";
+import { requireAuth } from "./decorators";
 import { Paths, Roles } from "../../constants";
 
 const getAllProducts = getAllResources(ProductModel);
@@ -24,14 +17,9 @@ const createProduct = createResource(ProductModel);
 const deleteProductById = deleteResourceById(ProductModel);
 const updateProductById = updateResourceById(ProductModel);
 
-@controller({
-  routePrefix: Paths.ProductApi,
-  requireAuthentication: true,
-  authorizedRoles: [Roles.Admin],
-})
+@controller(Paths.ProductApi)
 export class ProductController {
   @get(Paths.EMPTY)
-  @requireAuthorization(Roles.Buyer)
   async getAllProducts(
     req: Request,
     res: Response,
@@ -41,7 +29,6 @@ export class ProductController {
   }
 
   @get(Paths.ID)
-  @requireAuthorization(Roles.Buyer)
   async getProductById(
     req: Request,
     res: Response,
@@ -51,7 +38,7 @@ export class ProductController {
   }
 
   @post(Paths.EMPTY)
-  @requireAuthorization(Roles.Seller)
+  @requireAuth(Roles.Admin, Roles.Seller)
   async createProduct(
     req: Request,
     res: Response,
@@ -61,7 +48,7 @@ export class ProductController {
   }
 
   @patch(Paths.ID)
-  @requireAuthorization(Roles.Seller)
+  @requireAuth(Roles.Admin, Roles.Seller)
   async updateProductById(
     req: Request,
     res: Response,
@@ -71,7 +58,7 @@ export class ProductController {
   }
 
   @del(Paths.ID)
-  @requireAuthorization(Roles.Seller)
+  @requireAuth(Roles.Admin, Roles.Seller)
   async deleteProductById(
     req: Request,
     res: Response,
