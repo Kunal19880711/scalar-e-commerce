@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import "./controllers";
 import { AppRouter } from "express-controller";
 import { envConfig } from "../appUtils";
-import { handleError } from "./middlewares";
+import { handleError, handleMongooseError } from "./middlewares";
 
 type IServerConfig = {
   host: string;
@@ -32,6 +32,7 @@ export async function startWebServer(): Promise<void> {
   app.use(express.json());
   app.use(cookieParser());
   app.use(AppRouter.instance);
+  app.use(handleMongooseError);
   app.use(handleError);
 
   return new Promise((resolve, reject) => {
