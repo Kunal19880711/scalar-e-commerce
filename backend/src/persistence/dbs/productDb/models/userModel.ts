@@ -1,4 +1,3 @@
-
 import {
   CallbackWithoutResultAndOptionalError,
   Connection,
@@ -39,17 +38,17 @@ const userSchema: Schema = new Schema<IUser, Model<IUser>>(
       type: String,
       required: true,
       minLength: [8, "Password should be at least 8 characters long"],
+      validate: [
+        function (this: IUser) {
+          return this.confirmPassword === this.password;
+        },
+        "{VALUE} does not match with confirmPassword",
+      ],
     },
     confirmPassword: {
       type: String,
       required: true,
       minLength: 8,
-      validate: [
-        function (this: IUser) {
-          return this.confirmPassword === this.password;
-        },
-        "{VALUE} does not match with password",
-      ],
     },
     phash: {
       type: String,
@@ -80,6 +79,7 @@ const userSchema: Schema = new Schema<IUser, Model<IUser>>(
       transform: (_, ret) => {
         delete ret.accountVerificationOtp;
         delete ret.passwordRecoveryOtp;
+        delete ret.phash;
         return ret;
       },
     },
