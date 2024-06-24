@@ -23,4 +23,6 @@ export function handleMongooseError(
     next(new ApiError(HttpStatus.BadRequest, errorDetails));
     return;
   }
+
+  next(err);
 }
