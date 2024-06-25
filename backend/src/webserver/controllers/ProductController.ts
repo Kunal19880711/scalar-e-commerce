@@ -38,7 +38,7 @@ export class ProductController {
   }
 
   @post(Paths.EMPTY)
-  @requireAuth(Roles.Admin, Roles.Seller)
+  @requireAuth(Roles.Admin)
   async createProduct(
     req: Request,
     res: Response,
@@ -48,7 +48,7 @@ export class ProductController {
   }
 
   @patch(Paths.ID)
-  @requireAuth(Roles.Admin, Roles.Seller)
+  @requireAuth(Roles.Admin)
   async updateProductById(
     req: Request,
     res: Response,
@@ -58,7 +58,7 @@ export class ProductController {
   }
 
   @del(Paths.ID)
-  @requireAuth(Roles.Admin, Roles.Seller)
+  @requireAuth(Roles.Admin)
   async deleteProductById(
     req: Request,
     res: Response,

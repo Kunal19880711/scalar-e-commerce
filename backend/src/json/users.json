@@ -16,22 +16,6 @@
     "isVerified": false
   },
   {
-    "name": "unverfied seller",
-    "email": "unverfiedseller@example.com",
-    "password": "topsecret",
-    "confirmPassword": "topsecret",
-    "role": "seller",
-    "isVerified": false
-  },
-  {
-    "name": "verified seller",
-    "email": "verifiedseller@example.com",
-    "password": "topsecret",
-    "confirmPassword": "topsecret",
-    "role": "seller",
-    "isVerified": true
-  },
-  {
     "name": "verified buyer",
     "email": "verifiedbuyer@example.com",
     "password": "topsecret",

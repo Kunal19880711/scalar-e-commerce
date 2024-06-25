@@ -58,10 +58,6 @@ export class UserAccountController {
       const user = new UserModel(req.body);
       const errorDetails = generateErrorDetails(user.validateSync());
 
-      if (user.role && !isInEnumList(user.role, Constants.SignUpRolesAllowed)) {
-        errorDetails.push(new ValidationErrorDetail("role", ["Invalid role"]));
-      }
-
       if (errorDetails.length > 0) {
         const apiError = new ApiError(HttpStatus.BadRequest, errorDetails);
         next(apiError);
@@ -224,7 +220,7 @@ export class UserAccountController {
     } catch (err) {
       next(err);
     }
-}
+  }
 
   @post(Paths.ResetPassword)
   @requireBodyValidator("email", "otp", "password", "confirmPassword")
