@@ -1,11 +1,20 @@
 import { Request, Response, NextFunction } from "express";
 import { controller, patch, post } from "express-controller";
-import { IUser, UserModel } from "../../persistence";
+import { Types } from "mongoose";
+
+import {
+  IAddress,
+  IUser,
+  UserModel,
+  addressMandatoryKeyPaths,
+  notAllowDirectChangeKeyPaths,
+} from "../../persistence";
 import {
   ApiError,
-  IRequestWithJsonBody, IValidationErrorDetail,
+  IRequestWithJsonBody,
+  IValidationErrorDetail,
   PotentialBugs,
-  ValidationErrorDetail
+  ValidationErrorDetail,
 } from "../types";
 
 import {
@@ -42,9 +51,14 @@ export type ResetPasswordRequest = {
   confirmPassword: string;
 } & VerifyAccountRequest;
 
-const UserNotFoundError = new ApiError(HttpStatus.NotFound, "User not found", [
+const UserNotFoundError = new ApiError(HttpStatus.NotFound, "User not found.", [
   new ValidationErrorDetail("email", ["User not found."]),
 ]);
+
+const AccountDeletedError = new ApiError(
+  HttpStatus.Unauthorized,
+  "Your Account has been deleted."
+);
 
 @controller(Paths.AccountApi)
 export class UserAccountController {
@@ -280,12 +294,7 @@ export class UserAccountController {
 
   @patch(Paths.EMPTY)
   @requireAuth()
-  @requireDeleteKeyPaths(
-    "role",
-    "isVerified",
-    "accountVerificationOtp",
-    "passwordRecoveryOtp"
-  )
+  @requireDeleteKeyPaths(...notAllowDirectChangeKeyPaths)
   async updateOwnAccount(
     req: Request,
     res: Response,
@@ -299,6 +308,86 @@ export class UserAccountController {
       }
       req.params.id = userInfo.id;
       return await updateUserById(req, res, next);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @post(Paths.Address)
+  @requireAuth()
+  @requireBodyValidator(...addressMandatoryKeyPaths)
+  async addAddress(
+    req: IRequestWithJsonBody<IAddress>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userInfo = req?.requestInfo?.userInfo;
+      if (!userInfo) {
+        next(PotentialBugs.AuthDecoratorBug);
+        return;
+      }
+      const user = await UserModel.findById(userInfo.id);
+      if (!user) {
+        next(AccountDeletedError);
+        return;
+      }
+
+      user.addresses = user.addresses || [];
+      user.addresses.push(req.body);
+      const savedUSer = await user.save();
+      respondSuccess(
+        res,
+        HttpStatus.OK,
+        savedUSer,
+        "Address added successfully"
+      );
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @patch(Paths.Address + Paths.ID)
+  @requireAuth()
+  async updateAddress(
+    req: IRequestWithJsonBody<IAddress>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userInfo = req?.requestInfo?.userInfo;
+      if (!userInfo) {
+        next(PotentialBugs.AuthDecoratorBug);
+        return;
+      }
+      const user = await UserModel.findById(userInfo.id);
+      if (!user) {
+        next(AccountDeletedError);
+        return;
+      }
+
+      const id = req.params.id;
+      const userObj = user.toObject(); 
+      user.addresses = user.addresses || [];
+
+      const addressIndex = user.addresses.findIndex(
+        (address: IAddress) => address._id.toString() === id
+      );
+
+      user.addresses[addressIndex] = {
+        ...(userObj.addresses as IAddress[])[addressIndex],
+        ...req.body,
+        updatedAt: new Date()
+      };
+
+      const updatedUser = await user.save();
+
+      respondSuccess(
+        res,
+        HttpStatus.OK,
+        updatedUser,
+        "Address updated successfully"
+      );
     } catch (err) {
       next(err);
     }

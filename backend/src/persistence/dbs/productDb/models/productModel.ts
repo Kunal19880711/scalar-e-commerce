@@ -50,4 +50,5 @@ const productSchema = new Schema<IProduct, Model<IProduct>>(
 
 const connection: Connection = getConnection();
 
-export const ProductModel = connection.model("productModel", productSchema);
+export const productModelName = "productModel";
+export const ProductModel = connection.model(productModelName, productSchema);

@@ -3,12 +3,18 @@ import { ApiError, IAsyncMiddleware } from "../types";
 import { HttpStatus } from "../../constants";
 import { respondSuccess } from "./respondUtils";
 
+export type ExtraOptions = {
+  populate?: string[];
+};
+
 export const createResource =
-  <T>(model: Model<T>): IAsyncMiddleware =>
+  <T>(model: Model<T>, extraOptions?: ExtraOptions): IAsyncMiddleware =>
   async (req, res, next) => {
     try {
       const newResource = req.body;
-      const resource: T = await model.create(newResource);
+      let dbQuery = model.create(newResource);
+      dbQuery = changeQueryForExtraOptions(dbQuery, extraOptions);
+      const resource: T = await dbQuery;
       respondSuccess(res, HttpStatus.Created, resource);
     } catch (err: Error | any) {
       next(err);
@@ -16,7 +22,7 @@ export const createResource =
   };
 
 export const getAllResources =
-  <T>(model: Model<T>): IAsyncMiddleware =>
+  <T>(model: Model<T>, extraOptions?: ExtraOptions): IAsyncMiddleware =>
   async (req, res, next) => {
     try {
       let dbQuery = model.find();
@@ -34,6 +40,7 @@ export const getAllResources =
           .skip((parseInt(page) - 1) * parseInt(limit))
           .limit(parseInt(limit));
       }
+      dbQuery = changeQueryForExtraOptions(dbQuery, extraOptions);
 
       const data: T[] = await dbQuery;
       if (data.length === 0) {
@@ -47,11 +54,14 @@ export const getAllResources =
   };
 
 export const getResourceById =
-  <T>(model: Model<T>): IAsyncMiddleware =>
+  <T>(model: Model<T>, extraOptions?: ExtraOptions): IAsyncMiddleware =>
   async (req, res, next) => {
     try {
       const id = req.params.id;
-      const resource: T | null = await model.findById(id);
+      let dbQuery = model.findById(id);
+      dbQuery = changeQueryForExtraOptions(dbQuery, extraOptions);
+
+      const resource: T | null = await dbQuery;
       if (!resource) {
         next(new ApiError(HttpStatus.NotFound, "Resource not found"));
         return;
@@ -79,7 +89,7 @@ export const deleteResourceById =
   };
 
 export const updateResourceById =
-  <T>(model: Model<T>): IAsyncMiddleware =>
+  <T>(model: Model<T>, extraOptions?: ExtraOptions): IAsyncMiddleware =>
   async (req, res, next) => {
     try {
       const id = req.params.id;
@@ -89,7 +99,10 @@ export const updateResourceById =
         return;
       }
       resource.set(req.body);
-      const updateResource = await resource.save();
+
+      let dbQuery = resource.save();
+      dbQuery = changeQueryForExtraOptions(dbQuery, extraOptions);
+      const updateResource = await dbQuery;
       if (!resource) {
         next(new ApiError(HttpStatus.NotFound, "Resource not found"));
         return;
@@ -99,3 +112,15 @@ export const updateResourceById =
       next(err);
     }
   };
+
+function changeQueryForExtraOptions(query: any, extraOptions?: ExtraOptions) {
+  if (!extraOptions) {
+    return query;
+  }
+  if (extraOptions.populate) {
+    for (const keyPath of extraOptions.populate) {
+      query = query.populate(keyPath);
+    }
+  }
+  return query;
+}

@@ -52,7 +52,6 @@ export class LoginController {
         next(apiError);
         return;
       }
-
       const phash = hashPassword(password as string);
       if (user.phash != phash) {
         const apiError = new ApiError(HttpStatus.Unauthenticated, [
