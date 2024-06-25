@@ -3,6 +3,7 @@ import { controller, del, patch, post } from "express-controller";
 
 import {
   IAddress,
+  ICartItem,
   IUser,
   IUserData,
   IUserInfo,
@@ -26,6 +27,8 @@ import {
 import { Constants, HttpStatus, Paths } from "../../constants";
 import { Otp, generateOtp } from "../../appUtils";
 import {
+  ExtraOptions,
+  changeQueryForExtraOptions,
   generateErrorDetails,
   respondSuccess,
   updateResourceById,
@@ -335,13 +338,11 @@ export class UserAccountController {
       userData.addresses = userData.addresses || [];
 
       const addressIndex = userData.addresses.findIndex(
-        (address: IAddress) => address._id.toString() === id
+        (address: IAddress) => address.id.toString() === id
       );
 
       if (addressIndex === -1) {
-        throw new ApiError(HttpStatus.BadRequest, "Address not found", [
-          new ValidationErrorDetail("address", ["Address not found"]),
-        ]);
+        throw new ApiError(HttpStatus.BadRequest, "Address not found");
       }
 
       userData.addresses[addressIndex] = {
@@ -377,13 +378,11 @@ export class UserAccountController {
       userData.addresses = userData.addresses || [];
 
       const addressIndex = userData.addresses.findIndex(
-        (address: IAddress) => address._id.toString() === id
+        (address: IAddress) => address.id.toString() === id
       );
 
       if (addressIndex === -1) {
-        throw new ApiError(HttpStatus.BadRequest, "Address not found", [
-          new ValidationErrorDetail("address", ["Address not found"]),
-        ]);
+        throw new ApiError(HttpStatus.BadRequest, "Address not found");
       }
 
       userData.addresses.splice(addressIndex, 1);
@@ -394,6 +393,101 @@ export class UserAccountController {
         HttpStatus.OK,
         updatedUser,
         "Address deleted successfully"
+      );
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @post(Paths.Cart)
+  @requireAuth()
+  async addCartItem(
+    req: IRequestWithJsonBody<ICartItem>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userData = await getUserData(req);
+      userData.cart = userData.cart || [];
+      userData.cart.push(req.body);
+      const updatedUser = await userData.save();
+      respondSuccess(
+        res,
+        HttpStatus.OK,
+        updatedUser,
+        "Cart item added successfully"
+      );
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @patch(Paths.Cart + Paths.ID)
+  @requireAuth()
+  async updateCartItem(
+    req: IRequestWithJsonBody<ICartItem>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const id = req.params.id;
+      const userData = await getUserData(req, { populate: ["cart.product"] });
+      const userObj = userData.toObject();
+      userData.cart = userData.cart || [];
+      const cartItemIndex = userData.cart.findIndex(
+        (cartItem: ICartItem) => cartItem.id.toString() === id
+      );
+
+      if (cartItemIndex === -1) {
+        throw new ApiError(HttpStatus.BadRequest, "Cart item not found.");
+      }
+
+      const updatedCartItem: ICartItem = {
+        ...userObj.cart[cartItemIndex],
+        ...req.body,
+        updatedAt: new Date(),
+      };
+
+      userData.cart[cartItemIndex] = updatedCartItem;
+
+      const updatedUser = await userData.save();
+      respondSuccess(
+        res,
+        HttpStatus.OK,
+        updatedUser,
+        "Cart item modified successfully"
+      );
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @del(Paths.Cart + Paths.ID)
+  @requireAuth()
+  async deleteCartItem(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const id = req.params.id;
+      const userData = await getUserData(req);
+      userData.cart = userData.cart || [];
+      const cartItemIndex = userData.cart.findIndex(
+        (cartItem: ICartItem) => cartItem.id.toString() === id
+      );
+
+      if (cartItemIndex === -1) {
+        throw new ApiError(HttpStatus.BadRequest, "Cart item not found.");
+      }
+
+      userData.cart.splice(cartItemIndex, 1);
+      const updatedUser = await userData.save();
+      respondSuccess(
+        res,
+        HttpStatus.OK,
+        updatedUser,
+        "Cart item deleted successfully"
       );
     } catch (err) {
       next(err);
@@ -471,9 +565,14 @@ async function sendMailToResetPassword(
   return sendMail(mailOps);
 }
 
-async function getUserData(req: Request): Promise<IUserData> {
+async function getUserData(
+  req: Request,
+  extraOptions?: ExtraOptions
+): Promise<IUserData> {
   const userInfo = req?.requestInfo?.userInfo as IUserInfo;
-  const userData = await UserDataModel.findOne({ userId: userInfo.userId });
+  let query = UserDataModel.findOne({ userId: userInfo.userId });
+  query = changeQueryForExtraOptions(query, extraOptions);
+  const userData = await query;
   if (!userData) {
     throw AccountDeletedError;
   }

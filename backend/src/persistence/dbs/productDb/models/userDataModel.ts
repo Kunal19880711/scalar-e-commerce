@@ -1,9 +1,10 @@
 import {
-    Connection,
-    Document,
-    Model,
-    Schema,
-    SchemaDefinition, Types
+  Connection,
+  Document,
+  Model,
+  Schema,
+  SchemaDefinition,
+  Types,
 } from "mongoose";
 import { getConnection } from "../connect";
 import { IProduct, productModelName } from "./productModel";
@@ -14,6 +15,7 @@ export enum UserType {
 }
 
 export interface ICartItem {
+  id: Types.ObjectId;
   product: Types.ObjectId | IProduct;
   quantity: number;
   total: number;
@@ -22,7 +24,7 @@ export interface ICartItem {
 }
 
 export interface IAddress {
-  _id: Types.ObjectId;
+  id: Types.ObjectId;
   addressLine1: string;
   addressLine2: string;
   city: string;
@@ -153,6 +155,15 @@ const userSchema: Schema = new Schema<IUserData, Model<IUserData>>(
   userDataSchemaOptions
 );
 
+userSchema.pre<IUserData>("save", function (next) {
+  if (this.cart) {
+    this.cart.forEach((cartItem: ICartItem) => {
+      cartItem.total = cartItem.quantity * cartItem.product.price;
+    });
+  }
+  next();
+});
+
 const connection: Connection = getConnection();
 
 export const addressMandatoryKeyPaths = getMandatoryPaths(
@@ -161,6 +172,7 @@ export const addressMandatoryKeyPaths = getMandatoryPaths(
 export const cartMandatoryKeyPaths = getMandatoryPaths(
   cartSchemaDefination as { [key: string]: MaybeMandatory }
 );
+
 export const userDataModelName = "UserDataModel";
 export const UserDataModel = connection.model<IUserData>(
   userDataModelName,

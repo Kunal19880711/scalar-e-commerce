@@ -3,13 +3,11 @@ import {
   Document,
   Model,
   Schema,
-  SchemaDefinition,
-  Types,
+  SchemaDefinition
 } from "mongoose";
 import { getConnection } from "../connect";
 import { Roles } from "../../../../constants";
 import { Otp, hashPassword } from "../../../../appUtils";
-import { IProduct, productModelName } from "./productModel";
 
 export interface IUser extends Document {
   name?: string;

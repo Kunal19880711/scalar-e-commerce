@@ -108,7 +108,7 @@ export const updateResourceById =
     }
   };
 
-function changeQueryForExtraOptions(query: any, extraOptions?: ExtraOptions) {
+export function changeQueryForExtraOptions(query: any, extraOptions?: ExtraOptions) {
   if (!extraOptions) {
     return query;
   }
