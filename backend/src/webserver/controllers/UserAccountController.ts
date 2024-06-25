@@ -75,8 +75,7 @@ export class UserAccountController {
 
       if (errorDetails.length > 0) {
         const apiError = new ApiError(HttpStatus.BadRequest, errorDetails);
-        next(apiError);
-        return;
+        throw apiError;
       }
 
       user.isVerified = false;
@@ -106,17 +105,13 @@ export class UserAccountController {
       const { email } = req.body;
       let user = await UserModel.findOne({ email });
       if (!user) {
-        next(UserNotFoundError);
-        return;
+        throw UserNotFoundError;
       }
 
       if (user.isVerified) {
-        next(
-          new ApiError(HttpStatus.BadRequest, "User already verified", [
-            new ValidationErrorDetail("email", ["User already verified."]),
-          ])
-        );
-        return;
+        throw new ApiError(HttpStatus.BadRequest, "User already verified", [
+          new ValidationErrorDetail("email", ["User already verified."]),
+        ]);
       }
 
       if (!user.accountVerificationOtp) {
@@ -134,8 +129,7 @@ export class UserAccountController {
           }
         );
         if (!user) {
-          next(UserNotFoundError);
-          return;
+          throw UserNotFoundError;
         }
       }
 
@@ -162,16 +156,12 @@ export class UserAccountController {
       const { email, otp } = req.body;
       const user = await UserModel.findOne({ email });
       if (!user) {
-        next(UserNotFoundError);
-        return;
+        throw UserNotFoundError;
       }
 
       const otpErrorDetail = verifyOtp(user.accountVerificationOtp, otp);
       if (otpErrorDetail) {
-        next(
-          new ApiError(HttpStatus.BadRequest, "Invalid OTP", [otpErrorDetail])
-        );
-        return;
+        throw new ApiError(HttpStatus.BadRequest, "Invalid OTP", [otpErrorDetail]);
       }
 
       const savedUser: IUser | null = await UserModel.findByIdAndUpdate(
@@ -187,8 +177,7 @@ export class UserAccountController {
         }
       );
       if (!savedUser) {
-        next(UserNotFoundError);
-        return;
+        throw UserNotFoundError;
       }
       respondSuccess(
         res,
@@ -212,8 +201,7 @@ export class UserAccountController {
       const { email } = req.body;
       const user = await UserModel.findOne({ email });
       if (!user) {
-        next(UserNotFoundError);
-        return;
+        throw UserNotFoundError;
       }
       const otp = generateOtp(Constants.OtpLength, Constants.OtpLifeInSeconds);
       const savedUser: IUser | null = await UserModel.findByIdAndUpdate(
@@ -226,8 +214,7 @@ export class UserAccountController {
         }
       );
       if (!savedUser) {
-        next(UserNotFoundError);
-        return;
+        throw UserNotFoundError;
       }
       const message = `Please check your email ${savedUser.email} to reset your password`;
       const mailInfo = await sendMailToResetPassword(savedUser, otp);
@@ -248,8 +235,7 @@ export class UserAccountController {
       const { email, otp, password, confirmPassword } = req.body;
       const user = await UserModel.findOne({ email });
       if (!user) {
-        next(UserNotFoundError);
-        return;
+        throw UserNotFoundError;
       }
 
       const errorDetails: IValidationErrorDetail[] = [];
@@ -266,8 +252,7 @@ export class UserAccountController {
       }
 
       if (errorDetails.length > 0) {
-        next(new ApiError(HttpStatus.BadRequest, "Invalid OTP", errorDetails));
-        return;
+        throw new ApiError(HttpStatus.BadRequest, "Invalid OTP", errorDetails);
       }
 
       const savedUser: IUser | null = await UserModel.findByIdAndUpdate(
@@ -283,8 +268,7 @@ export class UserAccountController {
         }
       );
       if (!savedUser) {
-        next(UserNotFoundError);
-        return;
+        throw UserNotFoundError;
       }
       const message = "Password reset successfully";
       respondSuccess(res, HttpStatus.OK, savedUser, message);

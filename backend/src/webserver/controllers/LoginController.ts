@@ -54,16 +54,14 @@ export class LoginController {
           "User not found.",
           [new ValidationErrorDetail("email", ["User not found."])]
         );
-        next(apiError);
-        return;
+        throw apiError;
       }
       const phash = hashPassword(password as string);
       if (user.phash != phash) {
         const apiError = new ApiError(HttpStatus.Unauthenticated, [
           new ValidationErrorDetail("password", ["Incorrect Password."]),
         ]);
-        next(apiError);
-        return;
+        throw apiError;
       }
 
       if (!user.isVerified) {
@@ -72,8 +70,7 @@ export class LoginController {
           "User is not verified.",
           [new ValidationErrorDetail("email", ["User is not verified."])]
         );
-        next(apiError);
-        return;
+        throw apiError;
       }
 
       const userInfo: IUserInfo = {

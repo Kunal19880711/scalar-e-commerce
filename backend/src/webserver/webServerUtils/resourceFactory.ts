@@ -44,8 +44,7 @@ export const getAllResources =
 
       const data: T[] = await dbQuery;
       if (data.length === 0) {
-        next(new ApiError(HttpStatus.NotFound, "Resource not found"));
-        return;
+        throw new ApiError(HttpStatus.NotFound, "Resource not found");
       }
       respondSuccess(res, HttpStatus.Found, data);
     } catch (err: Error | any) {
@@ -63,8 +62,7 @@ export const getResourceById =
 
       const resource: T | null = await dbQuery;
       if (!resource) {
-        next(new ApiError(HttpStatus.NotFound, "Resource not found"));
-        return;
+        throw new ApiError(HttpStatus.NotFound, "Resource not found");
       }
       respondSuccess(res, HttpStatus.Found, resource);
     } catch (err: Error | any) {
@@ -79,8 +77,7 @@ export const deleteResourceById =
       const id = req.params.id;
       const deletedResource: T | null = await model.findByIdAndDelete(id);
       if (!deletedResource) {
-        next(new ApiError(HttpStatus.NotFound, "Resource not found"));
-        return;
+        throw new ApiError(HttpStatus.NotFound, "Resource not found");
       }
       respondSuccess(res, HttpStatus.Deleted, deletedResource);
     } catch (err: Error | any) {
@@ -95,8 +92,7 @@ export const updateResourceById =
       const id = req.params.id;
       const resource: HydratedDocument<T> | null = await model.findById(id);
       if (!resource) {
-        next(new ApiError(HttpStatus.NotFound, "Resource not found"));
-        return;
+        throw new ApiError(HttpStatus.NotFound, "Resource not found");
       }
       resource.set(req.body);
 
@@ -104,8 +100,7 @@ export const updateResourceById =
       dbQuery = changeQueryForExtraOptions(dbQuery, extraOptions);
       const updateResource = await dbQuery;
       if (!resource) {
-        next(new ApiError(HttpStatus.NotFound, "Resource not found"));
-        return;
+        throw new ApiError(HttpStatus.NotFound, "Resource not found");
       }
       respondSuccess(res, HttpStatus.Updated, updateResource);
     } catch (err: Error | any) {
