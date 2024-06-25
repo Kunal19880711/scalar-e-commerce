@@ -1,6 +1,7 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
+import {IUserInfo} from '../../persistence'
 import { JwtPayload, decryptJwtToken, envConfig } from "../../appUtils";
-import { ApiError, IUserInfo } from "../types";
+import { ApiError } from "../types";
 import { HttpStatus, Roles } from "../../constants";
 
 const config = envConfig();

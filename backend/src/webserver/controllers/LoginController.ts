@@ -4,7 +4,6 @@ import { requireBodyValidator, requireAuth } from "./decorators";
 import {
   ApiError,
   IRequestWithJsonBody,
-  IUserInfo,
   ValidationErrorDetail,
 } from "../types";
 import { HttpStatus, Paths } from "../../constants";
@@ -15,7 +14,13 @@ import {
   envConfig,
   decryptJwtToken,
 } from "../../appUtils";
-import { IUser, UserModel } from "../../persistence";
+import {
+  IUser,
+  UserModel,
+  IUserInfo,
+  UserType,
+  UserDataModel,
+} from "../../persistence";
 import { respondSuccess } from "../webServerUtils";
 
 const config = envConfig();
@@ -72,10 +77,14 @@ export class LoginController {
       }
 
       const userInfo: IUserInfo = {
-        id: user._id as string,
+        userId: user._id as string,
         email: user.email as string,
         role: user.role as string,
+        userType: UserType.Local,
       };
+      const userData = await UserDataModel.findOneAndUpdate({ userId: userInfo.userId }, userInfo, {
+        upsert: true,
+      });
       const token = await createJwtToken(userInfo);
       res.cookie(cookieKey, token, { maxAge: cookieMaxAge, httpOnly: true });
 
@@ -99,7 +108,13 @@ export class LoginController {
     try {
       const { token } = req.body;
       const payload: JwtPayload = await decryptJwtTokenHelper(token);
+
       const userInfo: IUserInfo = payload as IUserInfo;
+      userInfo.userType = UserType.Sso;
+      const userData = await UserDataModel.findOneAndUpdate({ userId: userInfo.userId }, userInfo, {
+        upsert: true,
+      });
+
       res.cookie(cookieKey, token, { maxAge: cookieMaxAge, httpOnly: true });
 
       const responseData = {

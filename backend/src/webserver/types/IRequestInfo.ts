@@ -1,4 +1,4 @@
-import { IUserInfo } from "./IUserInfo";
+import { IUserInfo } from "../../persistence";
 
 export interface IRequestInfo {
   userInfo?: IUserInfo;

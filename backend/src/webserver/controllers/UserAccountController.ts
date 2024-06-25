@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { controller, patch, post } from "express-controller";
-import { Types } from "mongoose";
 
 import {
   IAddress,
   IUser,
+  IUserData,
+  IUserInfo,
+  UserDataModel,
   UserModel,
   addressMandatoryKeyPaths,
   notAllowDirectChangeKeyPaths,
@@ -13,7 +15,6 @@ import {
   ApiError,
   IRequestWithJsonBody,
   IValidationErrorDetail,
-  PotentialBugs,
   ValidationErrorDetail,
 } from "../types";
 
@@ -23,7 +24,7 @@ import {
   requireAuth,
 } from "./decorators";
 import { Constants, HttpStatus, Paths } from "../../constants";
-import { Otp, generateOtp, isInEnumList } from "../../appUtils";
+import { Otp, generateOtp } from "../../appUtils";
 import {
   generateErrorDetails,
   respondSuccess,
@@ -301,12 +302,8 @@ export class UserAccountController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const userInfo = req?.requestInfo?.userInfo;
-      if (!userInfo) {
-        next(PotentialBugs.AuthDecoratorBug);
-        return;
-      }
-      req.params.id = userInfo.id;
+      const userInfo = req?.requestInfo?.userInfo as IUserInfo;
+      req.params.id = userInfo.userId.toString();
       return await updateUserById(req, res, next);
     } catch (err) {
       next(err);
@@ -322,20 +319,10 @@ export class UserAccountController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const userInfo = req?.requestInfo?.userInfo;
-      if (!userInfo) {
-        next(PotentialBugs.AuthDecoratorBug);
-        return;
-      }
-      const user = await UserModel.findById(userInfo.id);
-      if (!user) {
-        next(AccountDeletedError);
-        return;
-      }
-
-      user.addresses = user.addresses || [];
-      user.addresses.push(req.body);
-      const savedUSer = await user.save();
+      const userData = await getUserData(req);
+      userData.addresses = userData.addresses || [];
+      userData.addresses.push(req.body);
+      const savedUSer = await userData.save();
       respondSuccess(
         res,
         HttpStatus.OK,
@@ -355,32 +342,22 @@ export class UserAccountController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const userInfo = req?.requestInfo?.userInfo;
-      if (!userInfo) {
-        next(PotentialBugs.AuthDecoratorBug);
-        return;
-      }
-      const user = await UserModel.findById(userInfo.id);
-      if (!user) {
-        next(AccountDeletedError);
-        return;
-      }
-
       const id = req.params.id;
-      const userObj = user.toObject(); 
-      user.addresses = user.addresses || [];
+      const userData = await getUserData(req);
+      const userObj = userData.toObject();
+      userData.addresses = userData.addresses || [];
 
-      const addressIndex = user.addresses.findIndex(
+      const addressIndex = userData.addresses.findIndex(
         (address: IAddress) => address._id.toString() === id
       );
 
-      user.addresses[addressIndex] = {
+      userData.addresses[addressIndex] = {
         ...(userObj.addresses as IAddress[])[addressIndex],
         ...req.body,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
-      const updatedUser = await user.save();
+      const updatedUser = await userData.save();
 
       respondSuccess(
         res,
@@ -462,4 +439,13 @@ async function sendMailToResetPassword(
     html: message,
   };
   return sendMail(mailOps);
+}
+
+async function getUserData(req: Request): Promise<IUserData> {
+  const userInfo = req?.requestInfo?.userInfo as IUserInfo;
+  const userData = await UserDataModel.findOne({ userId: userInfo.userId });
+  if (!userData) {
+    throw AccountDeletedError;
+  }
+  return userData;
 }

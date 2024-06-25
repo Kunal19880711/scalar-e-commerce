@@ -1,5 +1,4 @@
 import {
-  CallbackWithoutResultAndOptionalError,
   Connection,
   Document,
   Model,
@@ -12,26 +11,6 @@ import { Roles } from "../../../../constants";
 import { Otp, hashPassword } from "../../../../appUtils";
 import { IProduct, productModelName } from "./productModel";
 
-export interface ICartItem {
-  product: Types.ObjectId | IProduct;
-  quantity: number;
-  total: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export interface IAddress {
-  _id: Types.ObjectId;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  country: string;
-  pincode: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
 export interface IUser extends Document {
   name?: string;
   email?: string;
@@ -42,69 +21,9 @@ export interface IUser extends Document {
   isVerified: boolean;
   accountVerificationOtp?: Otp;
   passwordRecoveryOtp?: Otp;
-  cart?: ICartItem[];
-  addresses?: IAddress[];
   createdAt?: Date;
   updatedAt?: Date;
 }
-
-const addressSchemaDefination: SchemaDefinition = {
-  addressLine1: {
-    type: String,
-    required: true,
-  },
-  addressLine2: {
-    type: String,
-    required: true,
-  },
-  city: {
-    type: String,
-    required: true,
-  },
-  state: {
-    type: String,
-    required: true,
-  },
-  country: {
-    type: String,
-    required: true,
-  },
-  pincode: {
-    type: String,
-    required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-};
-
-const cartSchemaDefination: SchemaDefinition = {
-  product: {
-    type: Types.ObjectId,
-    ref: productModelName,
-    required: true,
-  },
-  quantity: {
-    type: Number,
-    required: true,
-  },
-  total: {
-    type: Number,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-};
 
 const userSchemaDefination: SchemaDefinition = {
   name: {
@@ -118,7 +37,7 @@ const userSchemaDefination: SchemaDefinition = {
   },
   password: {
     type: String,
-    // required: true,
+    required: true,
     minLength: [8, "Password should be at least 8 characters long"],
     validate: [
       function (this: IUser) {
@@ -129,7 +48,7 @@ const userSchemaDefination: SchemaDefinition = {
   },
   confirmPassword: {
     type: String,
-    // required: true,
+    required: true,
     minLength: 8,
   },
   phash: {
@@ -152,15 +71,8 @@ const userSchemaDefination: SchemaDefinition = {
     otp: String,
     expiry: Date,
   },
-  cart: {
-    type: [cartSchemaDefination],
-    default: [],
-  },
-  addresses: {
-    type: [addressSchemaDefination],
-    default: [],
-  },
 };
+
 const userSchema: Schema = new Schema<IUser, Model<IUser>>(
   userSchemaDefination,
   {
@@ -196,19 +108,6 @@ export const notAllowDirectChangeKeyPaths = [
   "cart",
   "addresses",
 ];
-export const addressMandatoryKeyPaths = getMandatoryPaths(
-  addressSchemaDefination as { [key: string]: MaybeMandatory }
-);
-export const cartMandatoryKeyPaths = getMandatoryPaths(
-  cartSchemaDefination as { [key: string]: MaybeMandatory }
-);
+
 export const userModelName = "UserModel";
 export const UserModel = connection.model<IUser>(userModelName, userSchema);
-
-type MaybeMandatory = {
-  required?: boolean;
-};
-
-function getMandatoryPaths(obj: { [key: string]: MaybeMandatory }): string[] {
-  return Object.keys(obj).filter((key) => obj[key].required);
-}
