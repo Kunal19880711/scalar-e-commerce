@@ -294,7 +294,7 @@ export class UserAccountController {
     try {
       const userInfo = req?.requestInfo?.userInfo;
       if (!userInfo) {
-        next(PotentialBugs.AuthDecoratiorBug);
+        next(PotentialBugs.AuthDecoratorBug);
         return;
       }
       req.params.id = userInfo.id;
