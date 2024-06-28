@@ -1,6 +1,9 @@
 import express from "express";
 import cors, { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
+import {rateLimit} from "express-rate-limit";
+import mongoSanitize from "express-mongo-sanitize"; 
+
 import "./controllers";
 import { AppRouter } from "express-controller";
 import { envConfig } from "../appUtils";
@@ -11,6 +14,12 @@ type IServerConfig = {
   port: number;
   cors: CorsOptions;
 };
+
+// rate limiter: https://www.npmjs.com/package/express-rate-limit
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+});
 
 function getServerConfig(): IServerConfig {
   const serverConfig = envConfig();
@@ -28,9 +37,11 @@ export async function startWebServer(): Promise<void> {
   const app = express();
   const { host, port, cors: corsConfig } = getServerConfig();
 
+  app.use(limiter);
   app.use(cors(corsConfig));
-  app.use(express.json());
   app.use(cookieParser());
+  app.use(express.json());
+  app.use(mongoSanitize());
   app.use(AppRouter.instance);
   app.use(handleMongooseError);
   app.use(handleError);
