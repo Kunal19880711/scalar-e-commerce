@@ -60,7 +60,7 @@ export async function seedCollection(
   }
 }
 
-async function getConnection(dbName: DBNames): Promise<Connection> {
+export async function getConnection(dbName: DBNames): Promise<Connection> {
   switch (dbName) {
     case DBNames.Product:
       return await ensureProductDbConnection();

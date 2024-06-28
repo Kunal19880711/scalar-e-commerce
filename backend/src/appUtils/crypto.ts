@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { envConfig } from "./envConfig";
 
@@ -31,6 +31,13 @@ export async function decryptJwtToken(token: string): Promise<JwtPayload> {
   });
 }
 
-export function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password).digest("hex");
+export async function hashPassword(password: string): Promise<string> {
+  return await bcrypt.hash(password, 12);
+}
+
+export async function checkPassword(
+  origHashPass: string,
+  password: string
+): Promise<boolean> {
+  return await bcrypt.compare(password, origHashPass);
 }

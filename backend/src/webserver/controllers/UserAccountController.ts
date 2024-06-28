@@ -25,7 +25,7 @@ import {
   requireAuth,
 } from "./decorators";
 import { Constants, HttpStatus, Paths } from "../../constants";
-import { Otp, generateOtp } from "../../appUtils";
+import { Otp, generateOtp, hashPassword } from "../../appUtils";
 import {
   ExtraOptions,
   changeQueryForExtraOptions,
@@ -260,18 +260,9 @@ export class UserAccountController {
         throw new ApiError(HttpStatus.BadRequest, "Invalid OTP", errorDetails);
       }
 
-      const savedUser: IUser | null = await UserModel.findByIdAndUpdate(
-        user._id,
-        {
-          phash: user.phash,
-          $unset: {
-            passwordRecoveryOtp: "",
-          },
-        },
-        {
-          returnDocument: "after",
-        }
-      );
+      user.password = await hashPassword(password);
+      user.passwordRecoveryOtp = undefined;
+      const savedUser: IUser | null = await user.save();
       if (!savedUser) {
         throw UserNotFoundError;
       }

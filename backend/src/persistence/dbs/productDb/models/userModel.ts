@@ -3,7 +3,7 @@ import {
   Document,
   Model,
   Schema,
-  SchemaDefinition
+  SchemaDefinition,
 } from "mongoose";
 import { getConnection } from "../connect";
 import { Roles } from "../../../../constants";
@@ -14,7 +14,6 @@ export interface IUser extends Document {
   email?: string;
   password?: string;
   confirmPassword?: string;
-  phash?: string;
   role?: string;
   isVerified: boolean;
   accountVerificationOtp?: Otp;
@@ -49,9 +48,6 @@ const userSchemaDefination: SchemaDefinition = {
     required: true,
     minLength: 8,
   },
-  phash: {
-    type: String,
-  },
   role: {
     type: String,
     default: Roles.Buyer,
@@ -81,16 +77,15 @@ const userSchema: Schema = new Schema<IUser, Model<IUser>>(
       transform: (_, ret) => {
         delete ret.accountVerificationOtp;
         delete ret.passwordRecoveryOtp;
-        delete ret.phash;
+        delete ret.password;
         return ret;
       },
     },
   }
 );
 
-userSchema.pre<IUser>("save", function (next) {
-  this.phash = this.password ? hashPassword(this.password) : undefined;
-  this.password = undefined;
+userSchema.pre<IUser>("save", async function (next) {
+  this.password = this.password ? await hashPassword(this.password) : undefined;
   this.confirmPassword = undefined;
   next();
 });

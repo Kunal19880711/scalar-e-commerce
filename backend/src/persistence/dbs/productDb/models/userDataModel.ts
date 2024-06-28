@@ -8,6 +8,7 @@ import {
 } from "mongoose";
 import { getConnection } from "../connect";
 import { IProduct, productModelName } from "./productModel";
+import { ObjectId } from "mongodb";
 
 export enum UserType {
   Local = "local",
@@ -158,7 +159,9 @@ const userSchema: Schema = new Schema<IUserData, Model<IUserData>>(
 userSchema.pre<IUserData>("save", function (next) {
   if (this.cart) {
     this.cart.forEach((cartItem: ICartItem) => {
-      cartItem.total = cartItem.quantity * cartItem.product.price;
+      const product = cartItem.product as IProduct;
+      const productPrice = product.price as number;
+      cartItem.total = cartItem.quantity * productPrice;
     });
   }
   next();

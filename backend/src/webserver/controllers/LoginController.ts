@@ -13,6 +13,7 @@ import {
   hashPassword,
   envConfig,
   decryptJwtToken,
+  checkPassword,
 } from "../../appUtils";
 import {
   IUser,
@@ -56,8 +57,13 @@ export class LoginController {
         );
         throw apiError;
       }
-      const phash = hashPassword(password as string);
-      if (user.phash != phash) {
+
+      // check password
+      const isPasswordMatch = await checkPassword(
+        user.password as string,
+        password
+      );
+      if (!isPasswordMatch) {
         const apiError = new ApiError(HttpStatus.Unauthenticated, [
           new ValidationErrorDetail("password", ["Incorrect Password."]),
         ]);
@@ -79,9 +85,13 @@ export class LoginController {
         role: user.role as string,
         userType: UserType.Local,
       };
-      const userData = await UserDataModel.findOneAndUpdate({ userId: userInfo.userId }, userInfo, {
-        upsert: true,
-      });
+      const userData = await UserDataModel.findOneAndUpdate(
+        { userId: userInfo.userId },
+        userInfo,
+        {
+          upsert: true,
+        }
+      );
       const token = await createJwtToken(userInfo);
       res.cookie(cookieKey, token, { maxAge: cookieMaxAge, httpOnly: true });
 
@@ -108,9 +118,13 @@ export class LoginController {
 
       const userInfo: IUserInfo = payload as IUserInfo;
       userInfo.userType = UserType.Sso;
-      const userData = await UserDataModel.findOneAndUpdate({ userId: userInfo.userId }, userInfo, {
-        upsert: true,
-      });
+      const userData = await UserDataModel.findOneAndUpdate(
+        { userId: userInfo.userId },
+        userInfo,
+        {
+          upsert: true,
+        }
+      );
 
       res.cookie(cookieKey, token, { maxAge: cookieMaxAge, httpOnly: true });
 
