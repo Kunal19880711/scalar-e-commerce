@@ -1,16 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { controller, del, patch, post } from "express-controller";
+import { controller, patch, post } from "express-controller";
 
 import {
-  IAddress,
-  ICartItem,
-  IUser,
-  IUserData,
-  IUserInfo,
-  UserDataModel,
-  UserModel,
-  addressMandatoryKeyPaths,
-  notAllowDirectChangeKeyPaths,
+  IUser, IUserInfo, UserModel, notAllowDirectChangeKeyPaths
 } from "../../persistence";
 import {
   ApiError,
@@ -27,11 +19,9 @@ import {
 import { Constants, HttpStatus, Paths } from "../../constants";
 import { Otp, generateOtp, hashPassword } from "../../appUtils";
 import {
-  ExtraOptions,
-  changeQueryForExtraOptions,
   generateErrorDetails,
   respondSuccess,
-  updateResourceById,
+  updateResourceById
 } from "../webServerUtils";
 import { MailInfo, sendMail } from "../../communications";
 
@@ -58,11 +48,6 @@ export type ResetPasswordRequest = {
 const UserNotFoundError = new ApiError(HttpStatus.NotFound, "User not found.", [
   new ValidationErrorDetail("email", ["User not found."]),
 ]);
-
-const AccountDeletedError = new ApiError(
-  HttpStatus.Unauthorized,
-  "Your Account has been deleted."
-);
 
 @controller(Paths.AccountApi)
 export class UserAccountController {
@@ -289,201 +274,6 @@ export class UserAccountController {
       next(err);
     }
   }
-
-  @post(Paths.Address)
-  @requireAuth()
-  @requireBodyValidator(...addressMandatoryKeyPaths)
-  async addAddress(
-    req: IRequestWithJsonBody<IAddress>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    try {
-      const userData = await getUserData(req);
-      const newAddress = req.body as IAddress;
-      userData.addresses = userData.addresses || [];
-      userData.addresses.splice(0, 0, newAddress);
-      const savedUSer = await userData.save();
-      respondSuccess(
-        res,
-        HttpStatus.OK,
-        savedUSer,
-        "Address added successfully"
-      );
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  @patch(Paths.Address + Paths.ID)
-  @requireAuth()
-  async updateAddress(
-    req: IRequestWithJsonBody<IAddress>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    try {
-      const id = req.params.id;
-      const userData = await getUserData(req);
-      const userObj = userData.toObject();
-      userData.addresses = userData.addresses || [];
-
-      const addressIndex = userData.addresses.findIndex(
-        (address: IAddress) => address.id.toString() === id
-      );
-
-      if (addressIndex === -1) {
-        throw new ApiError(HttpStatus.BadRequest, "Address not found");
-      }
-
-      userData.addresses[addressIndex] = {
-        ...(userObj.addresses as IAddress[])[addressIndex],
-        ...req.body,
-        updatedAt: new Date(),
-      };
-
-      const updatedUser = await userData.save();
-
-      respondSuccess(
-        res,
-        HttpStatus.OK,
-        updatedUser,
-        "Address updated successfully"
-      );
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  @del(Paths.Address + Paths.ID)
-  @requireAuth()
-  async deleteAddress(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    try {
-      const id = req.params.id;
-      const userData = await getUserData(req);
-      const userObj = userData.toObject();
-      userData.addresses = userData.addresses || [];
-
-      const addressIndex = userData.addresses.findIndex(
-        (address: IAddress) => address.id.toString() === id
-      );
-
-      if (addressIndex === -1) {
-        throw new ApiError(HttpStatus.BadRequest, "Address not found");
-      }
-
-      userData.addresses.splice(addressIndex, 1);
-      const updatedUser = await userData.save();
-
-      respondSuccess(
-        res,
-        HttpStatus.OK,
-        updatedUser,
-        "Address deleted successfully"
-      );
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  @post(Paths.Cart)
-  @requireAuth()
-  async addCartItem(
-    req: IRequestWithJsonBody<ICartItem>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    try {
-      const userData = await getUserData(req);
-      userData.cart = userData.cart || [];
-      userData.cart.push(req.body);
-      const updatedUser = await userData.save();
-      respondSuccess(
-        res,
-        HttpStatus.OK,
-        updatedUser,
-        "Cart item added successfully"
-      );
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  @patch(Paths.Cart + Paths.ID)
-  @requireAuth()
-  async updateCartItem(
-    req: IRequestWithJsonBody<ICartItem>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    try {
-      const id = req.params.id;
-      const userData = await getUserData(req, { populate: ["cart.product"] });
-      const userObj = userData.toObject();
-      userData.cart = userData.cart || [];
-      const cartItemIndex = userData.cart.findIndex(
-        (cartItem: ICartItem) => cartItem.id.toString() === id
-      );
-
-      if (cartItemIndex === -1) {
-        throw new ApiError(HttpStatus.BadRequest, "Cart item not found.");
-      }
-
-      const updatedCartItem: ICartItem = {
-        ...userObj.cart[cartItemIndex],
-        ...req.body,
-        updatedAt: new Date(),
-      };
-
-      userData.cart[cartItemIndex] = updatedCartItem;
-
-      const updatedUser = await userData.save();
-      respondSuccess(
-        res,
-        HttpStatus.OK,
-        updatedUser,
-        "Cart item modified successfully"
-      );
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  @del(Paths.Cart + Paths.ID)
-  @requireAuth()
-  async deleteCartItem(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    try {
-      const id = req.params.id;
-      const userData = await getUserData(req);
-      userData.cart = userData.cart || [];
-      const cartItemIndex = userData.cart.findIndex(
-        (cartItem: ICartItem) => cartItem.id.toString() === id
-      );
-
-      if (cartItemIndex === -1) {
-        throw new ApiError(HttpStatus.BadRequest, "Cart item not found.");
-      }
-
-      userData.cart.splice(cartItemIndex, 1);
-      const updatedUser = await userData.save();
-      respondSuccess(
-        res,
-        HttpStatus.OK,
-        updatedUser,
-        "Cart item deleted successfully"
-      );
-    } catch (err) {
-      next(err);
-    }
-  }
 }
 
 function verifyOtp(
@@ -554,18 +344,4 @@ async function sendMailToResetPassword(
     html: message,
   };
   return sendMail(mailOps);
-}
-
-async function getUserData(
-  req: Request,
-  extraOptions?: ExtraOptions
-): Promise<IUserData> {
-  const userInfo = req?.requestInfo?.userInfo as IUserInfo;
-  let query = UserDataModel.findOne({ userId: userInfo.userId });
-  query = changeQueryForExtraOptions(query, extraOptions);
-  const userData = await query;
-  if (!userData) {
-    throw AccountDeletedError;
-  }
-  return userData;
 }

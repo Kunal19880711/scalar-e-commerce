@@ -1,11 +1,8 @@
 import { HydratedDocument, Model } from "mongoose";
-import { ApiError, IAsyncMiddleware } from "../types";
+import { ApiError, IAsyncMiddleware, ExtraOptions } from "../types";
 import { HttpStatus } from "../../constants";
 import { respondSuccess } from "./respondUtils";
-
-export type ExtraOptions = {
-  populate?: string[];
-};
+import { changeQueryForExtraOptions } from "./mongooseQueryUtils";
 
 export const createResource =
   <T>(model: Model<T>, extraOptions?: ExtraOptions): IAsyncMiddleware =>
@@ -108,14 +105,4 @@ export const updateResourceById =
     }
   };
 
-export function changeQueryForExtraOptions(query: any, extraOptions?: ExtraOptions) {
-  if (!extraOptions) {
-    return query;
-  }
-  if (extraOptions.populate) {
-    for (const keyPath of extraOptions.populate) {
-      query = query.populate(keyPath);
-    }
-  }
-  return query;
-}
+

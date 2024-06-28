@@ -1,5 +1,5 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import {IUserInfo} from '../../persistence'
+import { IUserInfo } from '../../persistence';
 import { JwtPayload, decryptJwtToken, envConfig } from "../../appUtils";
 import { ApiError } from "../types";
 import { HttpStatus, Roles } from "../../constants";
