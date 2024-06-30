@@ -86,7 +86,7 @@ export const updateResourceById =
   <T>(model: Model<T>): IAsyncMiddleware =>
   async (req, res, next, id ?: string) => {
     try {
-      const id = id || req.params.id;
+      id = id || req.params.id;
       const resource: HydratedDocument<T> | null = await model.findById(id);
       if (!resource) {
         throw new ApiError(HttpStatus.NotFound, "Resource not found");

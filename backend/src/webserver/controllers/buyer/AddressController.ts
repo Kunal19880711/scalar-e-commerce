@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { controller, del, patch, post } from "express-controller";
+import { controller, del, patch, post, get } from "express-controller";
 
 import { IAddress, addressMandatoryKeyPaths } from "../../../persistence";
 import { ApiError, IRequestWithJsonBody } from "../../types";
@@ -9,7 +9,22 @@ import { requireBodyValidator, requireAuth } from "../decorators";
 
 @controller(Paths.AddressApi)
 export class BuyerAddressController {
-  @post(Paths.AddressApi)
+  @get(Paths.EMPTY)
+  @requireAuth()
+  async getAddresses(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userData = await getUserData(req);
+      respondSuccess(res, HttpStatus.Found, userData.addresses);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @post(Paths.EMPTY)
   @requireAuth()
   @requireBodyValidator(...addressMandatoryKeyPaths)
   async addAddress(
@@ -26,7 +41,7 @@ export class BuyerAddressController {
       respondSuccess(
         res,
         HttpStatus.OK,
-        savedUSer,
+        (savedUSer.addresses as IAddress[])[0],
         "Address added successfully"
       );
     } catch (err) {
@@ -34,7 +49,7 @@ export class BuyerAddressController {
     }
   }
 
-  @patch(Paths.Address + Paths.ID)
+  @patch(Paths.ID)
   @requireAuth()
   async updateAddress(
     req: IRequestWithJsonBody<IAddress>,
@@ -66,7 +81,7 @@ export class BuyerAddressController {
       respondSuccess(
         res,
         HttpStatus.OK,
-        updatedUser,
+        (updatedUser.addresses as IAddress[])[addressIndex],
         "Address updated successfully"
       );
     } catch (err) {
@@ -74,7 +89,7 @@ export class BuyerAddressController {
     }
   }
 
-  @del(Paths.Address + Paths.ID)
+  @del(Paths.ID)
   @requireAuth()
   async deleteAddress(
     req: Request,
@@ -95,13 +110,13 @@ export class BuyerAddressController {
         throw new ApiError(HttpStatus.BadRequest, "Address not found");
       }
 
-      userData.addresses.splice(addressIndex, 1);
-      const updatedUser = await userData.save();
+      const deletedAddress = userData.addresses.splice(addressIndex, 1);
+      await userData.save();
 
       respondSuccess(
         res,
         HttpStatus.OK,
-        updatedUser,
+        deletedAddress,
         "Address deleted successfully"
       );
     } catch (err) {

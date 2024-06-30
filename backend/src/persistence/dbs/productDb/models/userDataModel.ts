@@ -16,7 +16,7 @@ export enum UserType {
 }
 
 export interface ICartItem {
-  _id: Types.ObjectId;
+  id: Types.ObjectId;
   product: Types.ObjectId | IProduct;
   quantity: number;
   total: number;

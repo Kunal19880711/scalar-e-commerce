@@ -79,7 +79,7 @@ export class CartController {
       const userObj = userData.toObject();
       userData.cart = userData.cart || [];
       const cartItemIndex = userData.cart.findIndex(
-        (cartItem: ICartItem) => cartItem._id.toString() === id
+        (cartItem: ICartItem) => cartItem.id.toString() === id
       );
 
       if (cartItemIndex === -1) {
@@ -120,7 +120,7 @@ export class CartController {
       const userData = await getUserData(req, { populate: ["cart.product"] });
       userData.cart = userData.cart || [];
       const cartItemIndex = userData.cart.findIndex(
-        (cartItem: ICartItem) => cartItem._id.toString() === id
+        (cartItem: ICartItem) => cartItem.id.toString() === id
       );
 
       if (cartItemIndex === -1) {
