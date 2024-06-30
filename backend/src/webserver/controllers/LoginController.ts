@@ -9,11 +9,9 @@ import {
 import { HttpStatus, Paths } from "../../constants";
 import {
   JwtPayload,
-  createJwtToken,
-  hashPassword,
-  envConfig,
+  createJwtToken, envConfig,
   decryptJwtToken,
-  checkPassword,
+  checkPassword
 } from "../../appUtils";
 import {
   IUser,

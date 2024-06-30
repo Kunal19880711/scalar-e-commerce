@@ -1,20 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import { controller, del, patch, post } from "express-controller";
 
-import { IAddress, addressMandatoryKeyPaths } from "../../persistence";
-import {
-  ApiError,
-  IRequestWithJsonBody
-} from "../types";
-import { HttpStatus, Paths } from "../../constants";
-import { getUserData, respondSuccess } from "../webServerUtils";
-import { requireBodyValidator, requireAuth } from "./decorators";
-
-console.log(addressMandatoryKeyPaths);
+import { IAddress, addressMandatoryKeyPaths } from "../../../persistence";
+import { ApiError, IRequestWithJsonBody } from "../../types";
+import { HttpStatus, Paths } from "../../../constants";
+import { getUserData, respondSuccess } from "../../webServerUtils";
+import { requireBodyValidator, requireAuth } from "../decorators";
 
 @controller(Paths.AddressApi)
 export class BuyerAddressController {
-  @post(Paths.Address)
+  @post(Paths.AddressApi)
   @requireAuth()
   @requireBodyValidator(...addressMandatoryKeyPaths)
   async addAddress(

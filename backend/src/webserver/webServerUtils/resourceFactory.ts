@@ -51,9 +51,9 @@ export const getAllResources =
 
 export const getResourceById =
   <T>(model: Model<T>, extraOptions?: ExtraOptions): IAsyncMiddleware =>
-  async (req, res, next) => {
+  async (req, res, next, id?: string) => {
     try {
-      const id = req.params.id;
+      id = id || req.params.id;
       let dbQuery = model.findById(id);
       dbQuery = changeQueryForExtraOptions(dbQuery, extraOptions);
 
@@ -69,9 +69,9 @@ export const getResourceById =
 
 export const deleteResourceById =
   <T>(model: Model<T>): IAsyncMiddleware =>
-  async (req, res, next) => {
+  async (req, res, next, id?: string) => {
     try {
-      const id = req.params.id;
+      id = id || req.params.id;
       const deletedResource: T | null = await model.findByIdAndDelete(id);
       if (!deletedResource) {
         throw new ApiError(HttpStatus.NotFound, "Resource not found");
@@ -83,19 +83,17 @@ export const deleteResourceById =
   };
 
 export const updateResourceById =
-  <T>(model: Model<T>, extraOptions?: ExtraOptions): IAsyncMiddleware =>
-  async (req, res, next) => {
+  <T>(model: Model<T>): IAsyncMiddleware =>
+  async (req, res, next, id ?: string) => {
     try {
-      const id = req.params.id;
+      const id = id || req.params.id;
       const resource: HydratedDocument<T> | null = await model.findById(id);
       if (!resource) {
         throw new ApiError(HttpStatus.NotFound, "Resource not found");
       }
       resource.set(req.body);
 
-      let dbQuery = resource.save();
-      dbQuery = changeQueryForExtraOptions(dbQuery, extraOptions);
-      const updateResource = await dbQuery;
+      const updateResource = await resource.save();
       if (!resource) {
         throw new ApiError(HttpStatus.NotFound, "Resource not found");
       }
@@ -104,5 +102,3 @@ export const updateResourceById =
       next(err);
     }
   };
-
-

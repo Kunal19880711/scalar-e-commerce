@@ -28,6 +28,7 @@ export function handleError(
         break;
     }
   } else {
+    console.error(err.stack);
     res.status(HttpStatus.InternalServerError.code).json({
       message: err.message,
     });

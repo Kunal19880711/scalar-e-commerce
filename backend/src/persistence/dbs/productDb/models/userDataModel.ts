@@ -8,7 +8,7 @@ import {
 } from "mongoose";
 import { getConnection } from "../connect";
 import { IProduct, productModelName } from "./productModel";
-import { ObjectId } from "mongodb";
+import { getMandatoryPaths, hasMandatoryPaths } from "../../../../appUtils";
 
 export enum UserType {
   Local = "local",
@@ -16,7 +16,7 @@ export enum UserType {
 }
 
 export interface ICartItem {
-  id: Types.ObjectId;
+  _id: Types.ObjectId;
   product: Types.ObjectId | IProduct;
   quantity: number;
   total: number;
@@ -120,6 +120,7 @@ const cartSchemaDefination: SchemaDefinition = {
   },
   total: {
     type: Number,
+    required: true,
   },
   createdAt: {
     type: Date,
@@ -156,24 +157,13 @@ const userSchema: Schema = new Schema<IUserData, Model<IUserData>>(
   userDataSchemaOptions
 );
 
-userSchema.pre<IUserData>("save", function (next) {
-  if (this.cart) {
-    this.cart.forEach((cartItem: ICartItem) => {
-      const product = cartItem.product as IProduct;
-      const productPrice = product.price as number;
-      cartItem.total = cartItem.quantity * productPrice;
-    });
-  }
-  next();
-});
-
 const connection: Connection = getConnection();
 
 export const addressMandatoryKeyPaths = getMandatoryPaths(
-  addressSchemaDefination as { [key: string]: MaybeMandatory }
+  addressSchemaDefination as hasMandatoryPaths
 );
 export const cartMandatoryKeyPaths = getMandatoryPaths(
-  cartSchemaDefination as { [key: string]: MaybeMandatory }
+  cartSchemaDefination as hasMandatoryPaths
 );
 
 export const userDataModelName = "UserDataModel";
@@ -181,11 +171,3 @@ export const UserDataModel = connection.model<IUserData>(
   userDataModelName,
   userSchema
 );
-
-type MaybeMandatory = {
-  required?: boolean;
-};
-
-function getMandatoryPaths(obj: { [key: string]: MaybeMandatory }): string[] {
-  return Object.keys(obj).filter((key) => obj[key].required);
-}
